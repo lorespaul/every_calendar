@@ -5,8 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "every_calendar",
+            "name": "windows",
             "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "web",
+            "request": "launch",
+            "args": ["-d", "chrome", "--web-port=1234"],
             "type": "dart"
         }
     ]
