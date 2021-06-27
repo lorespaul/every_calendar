@@ -4,6 +4,8 @@ import 'dart:developer' as developer;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io';
 
+import 'package:googleapis/drive/v2.dart';
+
 class LoginService {
   static final LoginService _instance = LoginService._internal();
 
@@ -14,6 +16,8 @@ class LoginService {
 
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
+
+  GoogleSignInAccount get loggedUser => _currentUser!;
 
   factory LoginService() {
     return _instance;
@@ -36,7 +40,10 @@ class LoginService {
           '343383817775-jjseikjhc3k1tp534kj5udi04gn871ak.apps.googleusercontent.com';
     }
     return GoogleSignIn(
-      scopes: <String>[CalendarApi.calendarScope],
+      scopes: <String>[
+        CalendarApi.calendarScope,
+        DriveApi.driveScope,
+      ],
       clientId: clientId,
     );
   }

@@ -1,11 +1,14 @@
+import 'package:every_calendar/widgets/nav_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MainTabs extends StatefulWidget {
   const MainTabs({Key? key, required this.title, required this.onLogout})
       : super(key: key);
+
   final String title;
   final Function() onLogout;
+
   @override
   State<StatefulWidget> createState() => _MainTabsState();
 }
@@ -21,7 +24,12 @@ class _MainTabsState extends State<MainTabs> {
 
   @override
   Widget build(BuildContext context) {
+    int i = 0;
     return Scaffold(
+      drawer: NavDrawer(
+        title: widget.title,
+        onLogout: widget.onLogout,
+      ),
       appBar: AppBar(
         title: Text(widget.title),
       ),
@@ -38,32 +46,33 @@ class _MainTabsState extends State<MainTabs> {
         currentIndex: _currentIndex,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        items: const [
+        type: BottomNavigationBarType.fixed,
+        items: [
           BottomNavigationBarItem(
             icon: Icon(
               Icons.calendar_today,
-              color: Colors.black45,
+              color: _currentIndex == i++ ? Colors.green : Colors.black45,
             ),
             label: "Calendar",
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.hail_rounded,
-              color: Colors.black45,
+              color: _currentIndex == i++ ? Colors.green : Colors.black45,
             ),
             label: "Collaborators",
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.person,
-              color: Colors.black45,
+              color: _currentIndex == i++ ? Colors.green : Colors.black45,
             ),
             label: "Contacts",
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.shopping_bag,
-              color: Colors.black45,
+              color: _currentIndex == i++ ? Colors.green : Colors.black45,
             ),
             label: "Activities",
           ),
