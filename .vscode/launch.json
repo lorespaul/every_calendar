@@ -7,6 +7,13 @@
         {
             "name": "windows",
             "request": "launch",
+            "args": ["-d", "windows"],
+            "type": "dart"
+        },
+        {
+            "name": "android",
+            "request": "launch",
+            "args": ["-d", "emulator-5554"],
             "type": "dart"
         },
         {

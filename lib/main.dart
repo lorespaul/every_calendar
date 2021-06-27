@@ -1,5 +1,7 @@
-import 'package:every_calendar/widgets/calendar.dart';
+import 'package:every_calendar/services/loader_service.dart';
+import 'package:every_calendar/services/login_service.dart';
 import 'package:every_calendar/widgets/login.dart';
+import 'package:every_calendar/widgets/main_tabs.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -41,47 +43,44 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
-  final List<Widget> _children = [
-    const Login(),
-    const Calendar(),
-    const Text("Page 3"),
-  ];
+  final LoginService _loginService = LoginService();
+  final LoaderService _loaderService = LoaderService();
+  bool isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(Duration.zero, () {
+      _loaderService.showLoader(context);
+      _loginService.silentlyLogin().then((value) {
+        if (value != null) {
+          setState(() => isLoggedIn = true);
+        }
+        // Future.delayed(
+        //     const Duration(seconds: 5), () => _loaderService.hideLoader());
+        _loaderService.hideLoader();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [_children[_currentIndex]],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (int index) => setState(() {
-          _currentIndex = index;
-        }),
-        currentIndex: _currentIndex,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: "Calendar",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.hail_rounded),
-            label: "Collaborators",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Contacts",
-          )
-        ],
-      ),
+    if (isLoggedIn) {
+      return MainTabs(
+        title: widget.title,
+        onLogout: () => _loginService.logout().then(
+              (value) => setState(() => isLoggedIn = false),
+            ),
+      );
+    }
+    return Login(
+      title: widget.title,
+      onLogin: () => _loginService.login().then((value) {
+        if (value != null) {
+          setState(() => isLoggedIn = true);
+        }
+      }),
     );
   }
 }
