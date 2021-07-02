@@ -25,5 +25,5 @@ class Tenant {
   bool operator ==(dynamic other) => other is Tenant && id == other.id;
 
   @override
-  int get hashCode => super.hashCode;
+  int get hashCode => '$id\$\$$name'.hashCode;
 }
