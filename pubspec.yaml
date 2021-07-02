@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   googleapis: ^3.0.0
   google_sign_in: ^5.0.4
+  path_provider: ^2.0.2
 
 dev_dependencies:
   flutter_test:

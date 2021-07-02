@@ -1,4 +1,6 @@
-import 'dart:io';
+import 'dart:async';
+import 'dart:io' as io;
+import 'dart:developer' as developer;
 
 import 'package:every_calendar/http/google_auth_client.dart';
 import 'package:every_calendar/services/login_service.dart';
@@ -11,7 +13,7 @@ class DriveService {
   DriveApi? _driveApi;
 
   static const String _tenantFilePath =
-      "https://drive.google.com/file/d/1-clx4365I-z3Nq-jFmNQHKkMh_hWyLXd/view";
+      "https://drive.google.com/u/3/uc?id=1-clx4365I-z3Nq-jFmNQHKkMh_hWyLXd&export=download";
 
   Future<DriveApi> _getDriveApi() async {
     if (_googleAuthClient == null) {
@@ -28,28 +30,38 @@ class DriveService {
     return _instance;
   }
 
-  Future<void> getTenants() async {
-    HttpClient httpClient = HttpClient();
-    File file;
-    String filePath = '';
-    String myUrl = '';
+  Future<void> syncTenants(io.File file) async {
+    final Completer<void> completer = Completer<void>.sync();
+    io.HttpClient httpClient = io.HttpClient();
 
     try {
-      // myUrl = url+'/'+fileName;
-      // var request = await httpClient.getUrl(Uri.parse(myUrl));
-      // var response = await request.close();
-      // if(response.statusCode == 200) {
-      //   var bytes = await consolidateHttpClientResponseBytes(response);
-      //   filePath = '$dir/$fileName';
-      //   file = File(filePath);
-      //   await file.writeAsBytes(bytes);
-      // }
-      // else
-      //   filePath = 'Error code: '+response.statusCode.toString();
-    } catch (ex) {
-      filePath = 'Can not fetch url';
+      var request = await httpClient.getUrl(Uri.parse(_tenantFilePath));
+      var response = await request.close();
+
+      if (response.statusCode == 200) {
+        var counter = 0;
+        response.listen(
+          (List<int> chunk) {
+            file.writeAsBytesSync(
+              chunk,
+              mode: counter == 0 ? io.FileMode.write : io.FileMode.append,
+            );
+            counter++;
+          },
+          onDone: () {
+            completer.complete();
+          },
+          onError: (e) => completer.completeError(e),
+        );
+      } else {
+        developer.log('Error code: ' + response.statusCode.toString());
+        completer.complete();
+      }
+    } catch (ex, stackTrace) {
+      developer.log('Can not fetch url');
+      completer.completeError(ex, stackTrace);
     }
 
-    // return filePath;
+    return completer.future;
   }
 }
