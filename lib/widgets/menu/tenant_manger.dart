@@ -6,7 +6,6 @@ import 'package:every_calendar/services/drive_service.dart';
 import 'package:every_calendar/services/filesystem_service.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 
@@ -56,7 +55,9 @@ class _TenantManagerState extends State<TenantManager> {
             } else if (snapshot.hasError) {
               return const Text('Error');
             }
-            return const Text('Loading...');
+            return const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            );
           },
         );
       },
@@ -68,7 +69,6 @@ class _TenantManagerState extends State<TenantManager> {
       File configFile = await widget._filesystemService.getTenantFile();
       await widget._driveService.syncTenants(configFile);
       var fileValue = await widget._filesystemService.getTenantFileJson();
-      developer.log(fileValue);
       _config = configFromJson(fileValue);
     }
     return _config!;

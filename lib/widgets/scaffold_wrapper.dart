@@ -8,10 +8,12 @@ class ScaffoldWrapper extends StatelessWidget {
     Key? key,
     this.title = "Every Calendar",
     required this.builder,
+    this.actionButton,
   }) : super(key: key);
 
   final String title;
   final ScaffoldContentBuilder builder;
+  final Widget? actionButton;
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +22,9 @@ class ScaffoldWrapper extends StatelessWidget {
         title: Text(title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            builder(),
-          ],
-        ),
+        child: builder(),
       ),
+      floatingActionButton: actionButton,
     );
   }
 }

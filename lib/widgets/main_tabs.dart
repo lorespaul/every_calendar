@@ -1,3 +1,5 @@
+import 'package:every_calendar/widgets/add_collaborator.dart';
+import 'package:every_calendar/widgets/collaborators.dart';
 import 'package:every_calendar/widgets/nav_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,16 +17,47 @@ class MainTabs extends StatefulWidget {
 
 class _MainTabsState extends State<MainTabs> {
   int _currentIndex = 0;
-  final List<Widget> _children = [
-    const Text("Page 1"),
-    const Text("Page 2"),
-    const Text("Page 3"),
-    const Text("Page 4"),
-  ];
+  List<WidgetWrapper> _children = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _children = createTabWidgets();
+  }
+
+  List<WidgetWrapper> createTabWidgets() {
+    return [
+      WidgetWrapper(
+        const Text("Page 1"),
+      ),
+      WidgetWrapper(
+        const Collaborators(),
+        actionsWrapper: [
+          ActionWrapper(
+            () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return AddCollaborator(title: widget.title);
+              }));
+            },
+            const Icon(Icons.add_circle_outline),
+          ),
+        ],
+      ),
+      WidgetWrapper(
+        const Text("Page 3"),
+      ),
+      WidgetWrapper(
+        const Text("Page 4"),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     int i = 0;
+    List<ActionWrapper>? actionsWrapper =
+        _children[_currentIndex].actionsWrapper;
+
     return Scaffold(
       drawer: NavDrawer(
         title: widget.title,
@@ -32,11 +65,22 @@ class _MainTabsState extends State<MainTabs> {
       ),
       appBar: AppBar(
         title: Text(widget.title),
+        actions: actionsWrapper
+            ?.map(
+              (a) => Padding(
+                padding: const EdgeInsets.only(right: 20.0),
+                child: GestureDetector(
+                  onTap: a.onTap,
+                  child: a.icon,
+                ),
+              ),
+            )
+            .toList(),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [_children[_currentIndex]],
+          children: [_children[_currentIndex].widget],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -80,4 +124,24 @@ class _MainTabsState extends State<MainTabs> {
       ),
     );
   }
+}
+
+class WidgetWrapper {
+  Widget widget;
+  List<ActionWrapper>? actionsWrapper;
+
+  WidgetWrapper(
+    this.widget, {
+    this.actionsWrapper,
+  });
+}
+
+class ActionWrapper {
+  Function() onTap;
+  Icon icon;
+
+  ActionWrapper(
+    this.onTap,
+    this.icon,
+  );
 }
