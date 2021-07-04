@@ -1,0 +1,97 @@
+import 'package:every_calendar/constants/dimensions.dart';
+import 'package:every_calendar/core/db/base_repository.dart';
+import 'package:every_calendar/model/collaborator.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import 'add_edit_collaborator.dart';
+
+class Collaborators extends StatefulWidget {
+  const Collaborators({Key? key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _CollaboratorsState();
+}
+
+class _CollaboratorsState extends State<Collaborators> {
+  final _collaboratorsRepository = BaseRepository<Collaborator>();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Collaborator>>(
+      future: getCollaborators(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return SizedBox(
+            height: MediaQuery.of(context).size.height -
+                Dimensions.scaffoldTopAndBottomBarHeight,
+            child: ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (_, index) {
+                final c = snapshot.data![index];
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(left: 10),
+                          child: Text(c.name),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 10),
+                          child: Text(c.email),
+                        ),
+                        const Spacer(),
+                        Container(
+                          margin: const EdgeInsets.only(left: 1),
+                          child: IconButton(
+                            onPressed: () async {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return AddEditCollaborator(
+                                  title: 'Edit Collaborator',
+                                  collaborator: c,
+                                );
+                              })).then((value) => setState(() {}));
+                            },
+                            icon: const Icon(
+                              Icons.edit,
+                              color: Colors.black45,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 1),
+                          child: IconButton(
+                            onPressed: () async {
+                              await _collaboratorsRepository.delete(c);
+                              setState(() {});
+                            },
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.black45,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return const Text('Error');
+        }
+        return const CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+        );
+      },
+    );
+  }
+
+  Future<List<Collaborator>> getCollaborators() {
+    return _collaboratorsRepository.getAll(Collaborator());
+  }
+}

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:every_calendar/model/tenant.dart';
 
-Config configFromJson(String string) => Config.fromJson(jsonDecode(string));
-String configToJson(Config config) => jsonEncode(config.toJson());
+Config configFromJson(String string) => Config.fromMap(jsonDecode(string));
+String configToJson(Config config) => jsonEncode(config.toMap());
 
 class Config {
   List<Tenant> tenants;
@@ -12,14 +12,14 @@ class Config {
     this.tenants,
   );
 
-  Config.fromJson(Map<String, dynamic> json)
+  Config.fromMap(Map<String, dynamic> json)
       : tenants = (json['tenants'] as List)
             .map(
-              (e) => Tenant.fromJson(e),
+              (e) => Tenant.fromMap(e),
             )
             .toList();
 
-  Map<String, dynamic> toJson() => {
-        'tenants': tenants.map((t) => t.toJson()).toList(),
+  Map<String, dynamic> toMap() => {
+        'tenants': tenants.map((t) => t.toMap()).toList(),
       };
 }

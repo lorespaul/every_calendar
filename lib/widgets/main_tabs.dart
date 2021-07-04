@@ -1,5 +1,6 @@
-import 'package:every_calendar/widgets/add_collaborator.dart';
-import 'package:every_calendar/widgets/collaborators.dart';
+import 'package:every_calendar/constants/dimensions.dart';
+import 'package:every_calendar/widgets/collaborators/add_edit_collaborator.dart';
+import 'package:every_calendar/widgets/collaborators/collaborators.dart';
 import 'package:every_calendar/widgets/nav_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,12 +18,10 @@ class MainTabs extends StatefulWidget {
 
 class _MainTabsState extends State<MainTabs> {
   int _currentIndex = 0;
-  List<WidgetWrapper> _children = [];
 
   @override
   void initState() {
     super.initState();
-    _children = createTabWidgets();
   }
 
   List<WidgetWrapper> createTabWidgets() {
@@ -31,13 +30,14 @@ class _MainTabsState extends State<MainTabs> {
         const Text("Page 1"),
       ),
       WidgetWrapper(
-        const Collaborators(),
+        // ignore: prefer_const_constructors
+        Collaborators(),
         actionsWrapper: [
           ActionWrapper(
             () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return AddCollaborator(title: widget.title);
-              }));
+                return const AddEditCollaborator(title: 'Add Collaborator');
+              })).then((value) => setState(() {}));
             },
             const Icon(Icons.add_circle_outline),
           ),
@@ -55,8 +55,10 @@ class _MainTabsState extends State<MainTabs> {
   @override
   Widget build(BuildContext context) {
     int i = 0;
+
+    List<WidgetWrapper> children = createTabWidgets();
     List<ActionWrapper>? actionsWrapper =
-        _children[_currentIndex].actionsWrapper;
+        children[_currentIndex].actionsWrapper;
 
     return Scaffold(
       drawer: NavDrawer(
@@ -64,6 +66,7 @@ class _MainTabsState extends State<MainTabs> {
         onLogout: widget.onLogout,
       ),
       appBar: AppBar(
+        toolbarHeight: Dimensions.appBarHeight,
         title: Text(widget.title),
         actions: actionsWrapper
             ?.map(
@@ -80,47 +83,51 @@ class _MainTabsState extends State<MainTabs> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [_children[_currentIndex].widget],
+          children: [children[_currentIndex].widget],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (int index) => setState(() {
-          _currentIndex = index;
-        }),
-        currentIndex: _currentIndex,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.calendar_today,
-              color: _currentIndex == i++ ? Colors.green : Colors.black45,
+      bottomNavigationBar: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: Dimensions.bottomNavigationBarHeight,
+        child: BottomNavigationBar(
+          onTap: (int index) => setState(() {
+            _currentIndex = index;
+          }),
+          currentIndex: _currentIndex,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.calendar_today,
+                color: _currentIndex == i++ ? Colors.green : Colors.black45,
+              ),
+              label: "Calendar",
             ),
-            label: "Calendar",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.hail_rounded,
-              color: _currentIndex == i++ ? Colors.green : Colors.black45,
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.hail_rounded,
+                color: _currentIndex == i++ ? Colors.green : Colors.black45,
+              ),
+              label: "Collaborators",
             ),
-            label: "Collaborators",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.person,
-              color: _currentIndex == i++ ? Colors.green : Colors.black45,
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.person,
+                color: _currentIndex == i++ ? Colors.green : Colors.black45,
+              ),
+              label: "Contacts",
             ),
-            label: "Contacts",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.shopping_bag,
-              color: _currentIndex == i++ ? Colors.green : Colors.black45,
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.shopping_bag,
+                color: _currentIndex == i++ ? Colors.green : Colors.black45,
+              ),
+              label: "Activities",
             ),
-            label: "Activities",
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

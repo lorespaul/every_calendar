@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-Tenant tenantFromJson(String string) => Tenant.fromJson(jsonDecode(string));
-String tenantToJson(Tenant tenant) => jsonEncode(tenant.toJson());
+Tenant tenantFromJson(String string) => Tenant.fromMap(jsonDecode(string));
+String tenantToJson(Tenant tenant) => jsonEncode(tenant.toMap());
 
 class Tenant {
   int id;
@@ -12,11 +12,11 @@ class Tenant {
     this.name,
   );
 
-  Tenant.fromJson(Map<String, dynamic> json)
+  Tenant.fromMap(Map<String, dynamic> json)
       : id = json['id'],
         name = json['name'];
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toMap() => {
         'id': id,
         'name': name,
       };

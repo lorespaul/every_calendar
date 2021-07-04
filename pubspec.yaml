@@ -37,6 +37,10 @@ dependencies:
   googleapis: ^3.0.0
   google_sign_in: ^5.0.4
   path_provider: ^2.0.2
+  sqflite: ^2.0.0+3
+  path: ^1.8.0
+  uuid: ^3.0.4
+  email_validator: ^2.0.1
 
 dev_dependencies:
   flutter_test:

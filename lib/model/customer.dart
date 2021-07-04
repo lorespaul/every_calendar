@@ -2,12 +2,11 @@ import 'dart:convert';
 
 import 'package:every_calendar/core/db/abstract_entity.dart';
 
-Collaborator collaboratorFromJson(String string) =>
-    Collaborator.fromMap(jsonDecode(string));
-String collaboratorToJson(Collaborator collaborator) =>
-    jsonEncode(collaborator.toMap());
+Customer customerFromJson(String string) =>
+    Customer.fromMap(jsonDecode(string));
+String customerToJson(Customer customer) => jsonEncode(customer.toMap());
 
-class Collaborator extends AbstractEntity {
+class Customer extends AbstractEntity {
   String uuid;
   String name;
   String email;
@@ -16,7 +15,7 @@ class Collaborator extends AbstractEntity {
   DateTime modifiedAt = DateTime.now();
   String modifiedBy;
 
-  Collaborator(
+  Customer(
       {this.uuid = '',
       this.name = '',
       this.email = '',
@@ -28,7 +27,7 @@ class Collaborator extends AbstractEntity {
   @override
   void setUuid(String uuid) => this.uuid = uuid;
 
-  Collaborator.fromMap(Map<String, dynamic> json)
+  Customer.fromMap(Map<String, dynamic> json)
       : uuid = json['uuid'],
         name = json['name'],
         email = json['email'],
@@ -49,9 +48,8 @@ class Collaborator extends AbstractEntity {
       };
 
   @override
-  String getTableName() => 'collaborators';
+  String getTableName() => 'customers';
 
   @override
-  AbstractEntity fromMap(Map<String, dynamic> value) =>
-      Collaborator.fromMap(value);
+  AbstractEntity fromMap(Map<String, dynamic> value) => Customer.fromMap(value);
 }
