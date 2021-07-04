@@ -16,10 +16,12 @@ class LoginService {
 
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
+  Function()? _onLoggedIn;
 
   GoogleSignInAccount get loggedUser => _currentUser!;
 
-  factory LoginService() {
+  factory LoginService({Function()? onLoggedIn}) {
+    _instance._onLoggedIn = onLoggedIn;
     return _instance;
   }
 
@@ -27,6 +29,7 @@ class LoginService {
     _googleSignIn ??= _initGoogleSignIn();
     _googleSignIn!.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       _currentUser = account;
+      _onLoggedIn?.call();
     });
   }
 

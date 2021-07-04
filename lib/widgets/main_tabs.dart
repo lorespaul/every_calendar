@@ -6,11 +6,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MainTabs extends StatefulWidget {
-  const MainTabs({Key? key, required this.title, required this.onLogout})
-      : super(key: key);
+  const MainTabs({
+    Key? key,
+    required this.title,
+    required this.onLogout,
+    required this.onSync,
+  }) : super(key: key);
 
   final String title;
   final Function() onLogout;
+  final Function(String) onSync;
 
   @override
   State<StatefulWidget> createState() => _MainTabsState();
@@ -64,6 +69,7 @@ class _MainTabsState extends State<MainTabs> {
       drawer: NavDrawer(
         title: widget.title,
         onLogout: widget.onLogout,
+        onSync: widget.onSync,
       ),
       appBar: AppBar(
         toolbarHeight: Dimensions.appBarHeight,

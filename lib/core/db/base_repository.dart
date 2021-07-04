@@ -25,7 +25,7 @@ class BaseRepository<T extends AbstractEntity> {
   Future<T?> insert(T entity) async {
     String table = entity.getTableName();
     entity.setUuid('');
-    var result = await _databaseManager.insert(table, entity.toMap());
+    var result = await _databaseManager.insert(table, entity);
     if (result != null) {
       return entity.fromMap(result) as T;
     }
@@ -34,7 +34,7 @@ class BaseRepository<T extends AbstractEntity> {
 
   Future<T?> insertOrUpdate(T entity) async {
     String table = entity.getTableName();
-    var result = await _databaseManager.insertOrUpdate(table, entity.toMap());
+    var result = await _databaseManager.insertOrUpdate(table, entity);
     if (result != null) {
       return entity.fromMap(result) as T;
     }
@@ -43,8 +43,7 @@ class BaseRepository<T extends AbstractEntity> {
 
   Future<T?> update(T entity) async {
     String table = entity.getTableName();
-    var result =
-        await _databaseManager.update(table, entity.getUuid(), entity.toMap());
+    var result = await _databaseManager.update(table, entity.getUuid(), entity);
     if (result != null) {
       return entity.fromMap(result) as T;
     }
@@ -53,6 +52,6 @@ class BaseRepository<T extends AbstractEntity> {
 
   Future<void> delete(T entity) async {
     String table = entity.getTableName();
-    await _databaseManager.deleteByUuid(table, entity.getUuid());
+    await _databaseManager.logicalDeleteByUuid(table, entity.getUuid(), entity);
   }
 }

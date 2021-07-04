@@ -15,6 +15,8 @@ class Collaborator extends AbstractEntity {
   String createdBy;
   DateTime modifiedAt = DateTime.now();
   String modifiedBy;
+  DateTime? deletedAt;
+  String? deletedBy;
 
   Collaborator(
       {this.uuid = '',
@@ -35,7 +37,11 @@ class Collaborator extends AbstractEntity {
         createdAt = DateTime.fromMillisecondsSinceEpoch(json['createdAt']),
         createdBy = json['createdBy'],
         modifiedAt = DateTime.fromMillisecondsSinceEpoch(json['modifiedAt']),
-        modifiedBy = json['modifiedBy'];
+        modifiedBy = json['modifiedBy'],
+        deletedAt = json['deletedAt'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(json['deletedAt'])
+            : null,
+        deletedBy = json['deletedBy'];
 
   @override
   Map<String, dynamic> toMap() => {
@@ -46,6 +52,8 @@ class Collaborator extends AbstractEntity {
         'createdBy': createdBy,
         'modifiedAt': modifiedAt.millisecondsSinceEpoch,
         'modifiedBy': modifiedBy,
+        'deletedAt': deletedAt?.millisecondsSinceEpoch,
+        'deletedBy': deletedBy,
       };
 
   @override
@@ -54,4 +62,30 @@ class Collaborator extends AbstractEntity {
   @override
   AbstractEntity fromMap(Map<String, dynamic> value) =>
       Collaborator.fromMap(value);
+
+  @override
+  DateTime getCreatedAt() => createdAt;
+  @override
+  String getCreatedBy() => createdBy;
+  @override
+  DateTime getModifiedAt() => modifiedAt;
+  @override
+  String getModifiedBy() => modifiedBy;
+  @override
+  DateTime? getDeletedAt() => deletedAt;
+  @override
+  String? getDeletedBy() => deletedBy;
+
+  @override
+  void setCreatedAt(DateTime createdAt) => this.createdAt = createdAt;
+  @override
+  void setCreatedBy(String createdBy) => this.createdBy = createdBy;
+  @override
+  void setModifiedAt(DateTime modifiedAt) => this.modifiedAt = modifiedAt;
+  @override
+  void setModifiedBy(String modifiedBy) => this.modifiedBy = modifiedBy;
+  @override
+  void setDeletedAt(DateTime? deletedAt) => this.deletedAt = deletedAt;
+  @override
+  void setDeletedBy(String? deletedBy) => this.deletedBy = deletedBy;
 }

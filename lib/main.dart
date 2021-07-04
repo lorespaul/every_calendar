@@ -1,13 +1,26 @@
+import 'dart:io';
+
 import 'package:every_calendar/core/db/database_setup.dart';
+import 'package:every_calendar/core/sync/sync_manager.dart';
+import 'package:every_calendar/services/drive_service.dart';
+import 'package:every_calendar/services/filesystem_service.dart';
 import 'package:every_calendar/services/loader_service.dart';
 import 'package:every_calendar/services/login_service.dart';
 import 'package:every_calendar/widgets/login.dart';
 import 'package:every_calendar/widgets/main_tabs.dart';
+import 'package:every_calendar/widgets/menu/tenant_manger.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:collection/collection.dart';
+
+import 'constants/prefs_keys.dart';
+import 'core/db/abstract_entity.dart';
+import 'model/collaborator.dart';
+import 'model/config.dart';
+import 'model/customer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await DatabaseSetup.setup();
 
   runApp(const MyApp());
 }
@@ -39,17 +52,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final LoginService _loginService = LoginService();
+  LoginService? _loginService;
+  final DriveService _driveService = DriveService();
+  final FilesystemService _filesystemService = FilesystemService();
   final LoaderService _loaderService = LoaderService();
   bool isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
+    _loginService = LoginService(onLoggedIn: initTenant);
 
     Future.delayed(Duration.zero, () {
       _loaderService.showLoader(context);
-      _loginService.silentlyLogin().then((value) {
+      _loginService!.silentlyLogin().then((value) {
         if (value != null) {
           setState(() => isLoggedIn = true);
         }
@@ -63,24 +79,70 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     if (isLoggedIn) {
+      initTenant();
       return MainTabs(
         title: widget.title,
         onLogout: () {
           _loaderService.showLoader(context);
-          _loginService.logout().then((value) {
+          _loginService!.logout().then((value) {
             setState(() => isLoggedIn = false);
             _loaderService.hideLoader();
           });
         },
+        onSync: setupTenantAndSync,
       );
     }
     return Login(
       title: widget.title,
-      onLogin: () => _loginService.login().then((value) {
+      onLogin: () => _loginService!.login().then((value) {
         if (value != null) {
           setState(() => isLoggedIn = true);
         }
       }),
     );
+  }
+
+  Future<void> setupTenantAndSync(String context) async {
+    await DatabaseSetup.setup(context, () => _loginService!.loggedUser.email);
+    List<AbstractEntity> collections = [
+      Collaborator(),
+      Customer(),
+    ];
+    SyncManager.build(context, collections)
+      ..driveApi = await _driveService.getDriveApi()
+      ..synchronizeWithDrive();
+  }
+
+  Future<void> initTenant() async {
+    File configFile = await _filesystemService.getTenantFile();
+    await _driveService.syncTenants(configFile);
+    var fileValue = await _filesystemService.getTenantFileJson();
+    var config = configFromJson(fileValue);
+    var prefs = await SharedPreferences.getInstance();
+    var tenantId = prefs.getInt(PrefsKeys.tenant);
+    if (tenantId != null) {
+      var selectedTenant = config.tenants.firstWhereOrNull(
+        (e) => e.id == tenantId,
+      );
+      await setupTenantAndSync(selectedTenant!.context);
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return TenantManager(
+              title: widget.title,
+              onSync: (c) {
+                setupTenantAndSync(c);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (c) => widget),
+                );
+              },
+            );
+          },
+        ),
+      );
+    }
   }
 }

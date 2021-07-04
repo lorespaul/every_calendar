@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:every_calendar/constants/prefs_keys.dart';
-import 'package:every_calendar/core/sync/sync_manager.dart';
 import 'package:every_calendar/model/config.dart';
 import 'package:every_calendar/model/tenant.dart';
 import 'package:every_calendar/services/drive_service.dart';
@@ -14,9 +13,14 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TenantManager extends StatefulWidget {
-  const TenantManager({Key? key, required this.title}) : super(key: key);
+  const TenantManager({
+    Key? key,
+    required this.title,
+    required this.onSync,
+  }) : super(key: key);
 
   final String title;
+  final Function(String) onSync;
 
   @override
   State<StatefulWidget> createState() => _TenantManagerState();
@@ -73,9 +77,7 @@ class _TenantManagerState extends State<TenantManager> {
       actionButton: FloatingActionButton(
         onPressed: () async {
           if (_selectedTenant != null) {
-            SyncManager.build(_selectedTenant!.context)
-              ..driveApi = await _driveService.getDriveApi()
-              ..synchronizeWithDrive();
+            widget.onSync(_selectedTenant!.context);
           }
         },
         child: const Icon(Icons.sync),
@@ -91,7 +93,7 @@ class _TenantManagerState extends State<TenantManager> {
       var fileValue = await _filesystemService.getTenantFileJson();
       _config = configFromJson(fileValue);
     }
-    _prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
     var tenantId = _prefs!.getInt(PrefsKeys.tenant);
     if (tenantId != null) {
       _selectedTenant = _config!.tenants.firstWhereOrNull(

@@ -2,11 +2,16 @@ import 'package:every_calendar/widgets/menu/tenant_manger.dart';
 import 'package:flutter/material.dart';
 
 class NavDrawer extends StatelessWidget {
-  const NavDrawer({Key? key, required this.title, required this.onLogout})
-      : super(key: key);
+  const NavDrawer({
+    Key? key,
+    required this.title,
+    required this.onLogout,
+    required this.onSync,
+  }) : super(key: key);
 
   final String title;
   final Function() onLogout;
+  final Function(String) onSync;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +53,10 @@ class NavDrawer extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pop();
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return TenantManager(title: title);
+                return TenantManager(
+                  title: title,
+                  onSync: onSync,
+                );
               }));
             },
           ),
