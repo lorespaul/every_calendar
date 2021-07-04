@@ -1,28 +1,34 @@
 import 'dart:io';
 
+import 'package:every_calendar/constants/prefs_keys.dart';
+import 'package:every_calendar/core/sync/sync_manager.dart';
 import 'package:every_calendar/model/config.dart';
 import 'package:every_calendar/model/tenant.dart';
 import 'package:every_calendar/services/drive_service.dart';
 import 'package:every_calendar/services/filesystem_service.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:collection/collection.dart';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TenantManager extends StatefulWidget {
-  TenantManager({Key? key, required this.title}) : super(key: key);
+  const TenantManager({Key? key, required this.title}) : super(key: key);
 
   final String title;
-  final DriveService _driveService = DriveService();
-  final FilesystemService _filesystemService = FilesystemService();
 
   @override
   State<StatefulWidget> createState() => _TenantManagerState();
 }
 
 class _TenantManagerState extends State<TenantManager> {
+  final DriveService _driveService = DriveService();
+  final FilesystemService _filesystemService = FilesystemService();
+  SharedPreferences? _prefs;
+
   Config? _config;
-  Tenant? _selectedConfig;
+  Tenant? _selectedTenant;
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +42,11 @@ class _TenantManagerState extends State<TenantManager> {
               Config config = snapshot.data!;
               return DropdownButton<Tenant>(
                 hint: const Text('Select tenant'),
-                value: _selectedConfig,
-                onChanged: (v) => setState(() => _selectedConfig = v),
+                value: _selectedTenant,
+                onChanged: (v) async {
+                  _prefs!.setInt(PrefsKeys.tenant, v!.id);
+                  setState(() => _selectedTenant = v);
+                },
                 items: config.tenants.map((tenant) {
                   return DropdownMenuItem<Tenant>(
                     value: tenant,
@@ -61,15 +70,33 @@ class _TenantManagerState extends State<TenantManager> {
           },
         );
       },
+      actionButton: FloatingActionButton(
+        onPressed: () async {
+          if (_selectedTenant != null) {
+            SyncManager.build(_selectedTenant!.context)
+              ..driveApi = await _driveService.getDriveApi()
+              ..synchronizeWithDrive();
+          }
+        },
+        child: const Icon(Icons.sync),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 
   Future<Config> _getConfig() async {
     if (_config == null) {
-      File configFile = await widget._filesystemService.getTenantFile();
-      await widget._driveService.syncTenants(configFile);
-      var fileValue = await widget._filesystemService.getTenantFileJson();
+      File configFile = await _filesystemService.getTenantFile();
+      await _driveService.syncTenants(configFile);
+      var fileValue = await _filesystemService.getTenantFileJson();
       _config = configFromJson(fileValue);
+    }
+    _prefs = await SharedPreferences.getInstance();
+    var tenantId = _prefs!.getInt(PrefsKeys.tenant);
+    if (tenantId != null) {
+      _selectedTenant = _config!.tenants.firstWhereOrNull(
+        (e) => e.id == tenantId,
+      );
     }
     return _config!;
   }

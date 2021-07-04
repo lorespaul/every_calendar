@@ -6,19 +6,27 @@ String tenantToJson(Tenant tenant) => jsonEncode(tenant.toMap());
 class Tenant {
   int id;
   String name;
+  String driveAccount;
+  String context;
 
   Tenant(
     this.id,
     this.name,
+    this.driveAccount,
+    this.context,
   );
 
   Tenant.fromMap(Map<String, dynamic> json)
       : id = json['id'],
-        name = json['name'];
+        name = json['name'],
+        driveAccount = json['driveAccount'],
+        context = json['context'];
 
   Map<String, dynamic> toMap() => {
         'id': id,
         'name': name,
+        'driveAccount': driveAccount,
+        'context': context,
       };
 
   @override

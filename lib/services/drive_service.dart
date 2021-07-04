@@ -15,7 +15,7 @@ class DriveService {
   static const String _tenantFilePath =
       "https://drive.google.com/u/3/uc?id=1-clx4365I-z3Nq-jFmNQHKkMh_hWyLXd&export=download";
 
-  Future<DriveApi> _getDriveApi() async {
+  Future<DriveApi> getDriveApi() async {
     if (_googleAuthClient == null) {
       var headers = await _loginService.loggedUser.authHeaders;
       _googleAuthClient = GoogleAuthClient(headers);
