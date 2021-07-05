@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:email_validator/email_validator.dart';
+import 'package:every_calendar/constants/all_constants.dart';
+import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/base_repository.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/services/login_service.dart';
@@ -14,10 +16,12 @@ class AddEditCollaborator extends StatefulWidget {
     Key? key,
     required this.title,
     this.collaborator,
+    required this.onSync,
   }) : super(key: key);
 
   final String title;
   final Collaborator? collaborator;
+  final Function(String, AbstractEntity?) onSync;
 
   @override
   State<StatefulWidget> createState() => _AddEditCollaboratorState();
@@ -124,7 +128,10 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
               collaborator!.modifiedBy = _loginService.loggedUser.email;
 
               _collaboratorsRepository.insertOrUpdate(collaborator!).then((c) {
-                developer.log('collaborator: ' + collaboratorToJson(c!));
+                if (c != null) {
+                  widget.onSync(AllConstants.currentContext, c);
+                  developer.log('collaborator: ' + collaboratorToJson(c));
+                }
                 Navigator.of(context).pop();
               });
             });

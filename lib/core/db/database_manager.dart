@@ -72,6 +72,7 @@ class DatabaseManager {
   Future<Map<String, dynamic>?> insert(
     String table,
     AbstractEntity entity, {
+    String uuid = '',
     bool setBreadcrumbs = true,
   }) async {
     var db = await DatabaseSetup.getDatabase();
@@ -86,8 +87,12 @@ class DatabaseManager {
 
     var value = entity.toMap();
     value['id'] = null;
-    var uuidGenerator = const Uuid();
-    value['uuid'] = uuidGenerator.v4();
+    if (uuid.isEmpty) {
+      var uuidGenerator = const Uuid();
+      value['uuid'] = uuidGenerator.v4();
+    } else {
+      value['uuid'] = uuid;
+    }
     int id = await db.insert(
       table,
       value,

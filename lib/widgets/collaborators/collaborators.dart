@@ -1,4 +1,6 @@
+import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/constants/dimensions.dart';
+import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/base_repository.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'add_edit_collaborator.dart';
 
 class Collaborators extends StatefulWidget {
-  const Collaborators({Key? key}) : super(key: key);
+  const Collaborators({Key? key, required this.onSync}) : super(key: key);
+
+  final Function(String, AbstractEntity?) onSync;
 
   @override
   State<StatefulWidget> createState() => _CollaboratorsState();
@@ -52,6 +56,7 @@ class _CollaboratorsState extends State<Collaborators> {
                                 return AddEditCollaborator(
                                   title: 'Edit Collaborator',
                                   collaborator: c,
+                                  onSync: widget.onSync,
                                 );
                               })).then((value) => setState(() {}));
                             },
@@ -144,6 +149,7 @@ class _CollaboratorsState extends State<Collaborators> {
                   ),
                   onPressed: () async {
                     await _collaboratorsRepository.delete(collaborator);
+                    widget.onSync(AllConstants.currentContext, collaborator);
                     Navigator.of(context).pop();
                     setState(() {});
                   },

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/database_setup.dart';
 import 'package:every_calendar/core/sync/sync_manager.dart';
 import 'package:every_calendar/services/drive_service.dart';
@@ -73,8 +74,6 @@ class _HomePageState extends State<HomePage> {
         if (value != null) {
           setState(() => isLoggedIn = true);
         }
-        // Future.delayed(
-        //     const Duration(seconds: 5), () => _loaderService.hideLoader());
         _loaderService.hideLoader();
       });
     });
@@ -105,20 +104,30 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> setupTenantAndSync(String context) async {
-    await DatabaseSetup.setup(context, () => _loginService!.loggedUser.email);
+  Future<void> setupTenantAndSync(
+    String context,
+    AbstractEntity? entity,
+  ) async {
+    if (context != AllConstants.currentContext) {
+      await DatabaseSetup.setup(context, () => _loginService!.loggedUser.email);
+    }
     List<AbstractEntity> collections = [
       Collaborator(),
       Customer(),
     ];
     var driveApi = await _driveService.getDriveApi();
     var loggedUser = _loginService!.loggedUser;
-    SyncManager.build(
+    var syncManager = SyncManager.build(
       context,
       collections,
       driveApi,
       loggedUser,
-    ).synchronizeWithDrive();
+    );
+    if (entity == null) {
+      syncManager.synchronizeWithDrive();
+    } else {
+      syncManager.synchronizeOne(entity, entity.getUuid());
+    }
   }
 
   Future<void> initTenant() async {
@@ -132,7 +141,7 @@ class _HomePageState extends State<HomePage> {
       var selectedTenant = config.tenants.firstWhereOrNull(
         (e) => e.id == tenantId,
       );
-      await setupTenantAndSync(selectedTenant!.context);
+      await setupTenantAndSync(selectedTenant!.context, null);
     } else {
       Navigator.pushReplacement(
         context,
@@ -141,7 +150,7 @@ class _HomePageState extends State<HomePage> {
             return TenantManager(
               title: widget.title,
               onSync: (c) {
-                setupTenantAndSync(c);
+                setupTenantAndSync(c, null);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (c) => widget),

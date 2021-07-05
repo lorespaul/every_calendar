@@ -1,4 +1,5 @@
 import 'package:every_calendar/constants/dimensions.dart';
+import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/widgets/collaborators/add_edit_collaborator.dart';
 import 'package:every_calendar/widgets/collaborators/collaborators.dart';
 import 'package:every_calendar/widgets/nav_drawer.dart';
@@ -15,7 +16,7 @@ class MainTabs extends StatefulWidget {
 
   final String title;
   final Function() onLogout;
-  final Function(String) onSync;
+  final Function(String, AbstractEntity?) onSync;
 
   @override
   State<StatefulWidget> createState() => _MainTabsState();
@@ -29,19 +30,23 @@ class _MainTabsState extends State<MainTabs> {
     super.initState();
   }
 
-  List<WidgetWrapper> createTabWidgets() {
+  List<WidgetWrapper> createTabWidgets(
+      Function(String, AbstractEntity?) onSync) {
     return [
       WidgetWrapper(
         const Text("Page 1"),
       ),
       WidgetWrapper(
         // ignore: prefer_const_constructors
-        Collaborators(),
+        Collaborators(onSync: onSync),
         actionsWrapper: [
           ActionWrapper(
             () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return const AddEditCollaborator(title: 'Add Collaborator');
+                return AddEditCollaborator(
+                  title: 'Add Collaborator',
+                  onSync: onSync,
+                );
               })).then((value) => setState(() {}));
             },
             const Icon(Icons.add_circle_outline),
@@ -61,7 +66,7 @@ class _MainTabsState extends State<MainTabs> {
   Widget build(BuildContext context) {
     int i = 0;
 
-    List<WidgetWrapper> children = createTabWidgets();
+    List<WidgetWrapper> children = createTabWidgets(widget.onSync);
     List<ActionWrapper>? actionsWrapper =
         children[_currentIndex].actionsWrapper;
 
@@ -69,7 +74,7 @@ class _MainTabsState extends State<MainTabs> {
       drawer: NavDrawer(
         title: widget.title,
         onLogout: widget.onLogout,
-        onSync: widget.onSync,
+        onSync: (c) => widget.onSync(c, null),
       ),
       appBar: AppBar(
         toolbarHeight: Dimensions.appBarHeight,

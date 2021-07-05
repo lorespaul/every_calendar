@@ -30,21 +30,17 @@ class SyncManager {
 
   Future<void> synchronizeWithDrive() async {
     try {
-      File remoteBaseFolder = await getOrCreateDriveFolder(_baseFolder);
-      File remoteTenantFolder = await getOrCreateDriveFolder(
-        _tenantFolder,
-        parentId: remoteBaseFolder.id!,
-      );
+      File remoteTenantFolder = await _getRemoteTenantFolder();
 
       for (var collection in _collections) {
         var collectionName = collection.getTableName();
-        var remoteFolder = await getOrCreateDriveFolder(
+        var remoteFolder = await _getOrCreateDriveFolder(
           collectionName,
           parentId: remoteTenantFolder.id!,
         );
 
-        var remoteFiles = await getRemoteFilesInFolder(remoteFolder.id!);
-        List<int> synchronizedIds = await syncRemoteToLocal(
+        var remoteFiles = await _getRemoteFilesInFolder(remoteFolder.id!);
+        List<int> synchronizedIds = await _syncRemoteToLocal(
           remoteFiles,
           collection,
         );
@@ -55,14 +51,50 @@ class SyncManager {
             )) ??
             [];
 
-        await syncLocalToRemote(remoteFolder.id!, localData, collection);
+        await _syncLocalToRemote(remoteFolder.id!, localData, collection);
       }
     } catch (e) {
       developer.log(e.toString());
     }
   }
 
-  Future<void> syncLocalToRemote(
+  Future<void> synchronizeOne(AbstractEntity collection, String uuid) async {
+    File remoteTenantFolder = await _getRemoteTenantFolder();
+
+    var collectionName = collection.getTableName();
+    var remoteFolder = await _getOrCreateDriveFolder(
+      collectionName,
+      parentId: remoteTenantFolder.id!,
+    );
+
+    var remoteFiles =
+        await _getRemoteFileInFolder('$uuid$_jsonExtension', remoteFolder.id!);
+    List<int> synchronizedIds = await _syncRemoteToLocal(
+      remoteFiles,
+      collection,
+    );
+
+    if (synchronizedIds.isEmpty) {
+      var localData = await _databaseManager.getByUuid(
+        collectionName,
+        uuid,
+      );
+
+      if (localData != null) {
+        await _syncLocalToRemote(remoteFolder.id!, [localData], collection);
+      }
+    }
+  }
+
+  Future<File> _getRemoteTenantFolder() async {
+    File remoteBaseFolder = await _getOrCreateDriveFolder(_baseFolder);
+    return await _getOrCreateDriveFolder(
+      _tenantFolder,
+      parentId: remoteBaseFolder.id!,
+    );
+  }
+
+  Future<void> _syncLocalToRemote(
     String parentId,
     List<Map<String, dynamic>> localData,
     AbstractEntity collection,
@@ -78,7 +110,7 @@ class SyncManager {
           ..parents = [parentId]
           ..mimeType = _jsonMediaType;
         var bytes = utf8.encode(jsonEncode(localEntity.toMap()));
-        Media media = Media(getStream(bytes), bytes.length);
+        Media media = Media(_getStream(bytes), bytes.length);
         await _driveApi.files.create(fileMetadata, uploadMedia: media);
       } else {
         // else delete local data
@@ -90,7 +122,7 @@ class SyncManager {
     }
   }
 
-  Future<List<int>> syncRemoteToLocal(
+  Future<List<int>> _syncRemoteToLocal(
     List<File> remoteFiles,
     AbstractEntity collection,
   ) async {
@@ -113,11 +145,12 @@ class SyncManager {
 
       if (ld == null) {
         // insert to db
-        var remoteEntity = await remoteFileToAbstractEntity(rf, collection);
+        var remoteEntity = await _remoteFileToAbstractEntity(rf, collection);
         if (remoteEntity != null) {
           var inserted = await _databaseManager.insert(
             collectionName,
             remoteEntity,
+            uuid: remoteEntity.getUuid(),
             setBreadcrumbs: false,
           );
           if (inserted != null) {
@@ -140,7 +173,7 @@ class SyncManager {
             ..name = '${localEntity.getUuid()}$_jsonExtension'
             ..mimeType = _jsonMediaType;
           var bytes = utf8.encode(jsonEncode(localEntity.toMap()));
-          Media media = Media(getStream(bytes), bytes.length);
+          Media media = Media(_getStream(bytes), bytes.length);
           _driveApi.files.update(
             fileMetadata,
             rf.id!,
@@ -150,7 +183,7 @@ class SyncManager {
         } else if (localEntity.getModifiedAt().isBefore(rf.modifiedTime!) &&
             !rf.modifiedByMe!) {
           // update local data
-          var remoteEntity = await remoteFileToAbstractEntity(rf, collection);
+          var remoteEntity = await _remoteFileToAbstractEntity(rf, collection);
           if (remoteEntity != null) {
             await _databaseManager.update(
               collectionName,
@@ -169,11 +202,11 @@ class SyncManager {
     return synchronizedIds;
   }
 
-  Stream<List<int>> getStream(List<int> bytes) async* {
+  Stream<List<int>> _getStream(List<int> bytes) async* {
     yield bytes;
   }
 
-  Future<AbstractEntity?> remoteFileToAbstractEntity(
+  Future<AbstractEntity?> _remoteFileToAbstractEntity(
     File rf,
     AbstractEntity collection,
   ) async {
@@ -197,7 +230,7 @@ class SyncManager {
     }
   }
 
-  Future<File> getOrCreateDriveFolder(
+  Future<File> _getOrCreateDriveFolder(
     String name, {
     String parentId = '',
   }) async {
@@ -220,9 +253,21 @@ class SyncManager {
     return result;
   }
 
-  Future<List<File>> getRemoteFilesInFolder(String parentId) async {
+  Future<List<File>> _getRemoteFilesInFolder(String parentId) async {
     FileList folder = await _driveApi.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents",
+      $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
+    );
+    if (folder.files != null) {
+      return folder.files!;
+    }
+    return List.empty();
+  }
+
+  Future<List<File>> _getRemoteFileInFolder(
+      String name, String parentId) async {
+    FileList folder = await _driveApi.files.list(
+      q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents and name = '$name'",
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );
     if (folder.files != null) {
