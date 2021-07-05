@@ -108,9 +108,14 @@ class _HomePageState extends State<HomePage> {
       Collaborator(),
       Customer(),
     ];
-    SyncManager.build(context, collections)
-      ..driveApi = await _driveService.getDriveApi()
-      ..synchronizeWithDrive();
+    var driveApi = await _driveService.getDriveApi();
+    var loggedUser = _loginService!.loggedUser;
+    SyncManager.build(
+      context,
+      collections,
+      driveApi,
+      loggedUser,
+    ).synchronizeWithDrive();
   }
 
   Future<void> initTenant() async {

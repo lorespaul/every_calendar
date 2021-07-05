@@ -64,10 +64,7 @@ class _CollaboratorsState extends State<Collaborators> {
                         Container(
                           margin: const EdgeInsets.only(left: 1),
                           child: IconButton(
-                            onPressed: () async {
-                              await _collaboratorsRepository.delete(c);
-                              setState(() {});
-                            },
+                            onPressed: () async => await showDeleteDialog(c),
                             icon: const Icon(
                               Icons.delete,
                               color: Colors.black45,
@@ -93,5 +90,69 @@ class _CollaboratorsState extends State<Collaborators> {
 
   Future<List<Collaborator>> getCollaborators() {
     return _collaboratorsRepository.getAll(Collaborator());
+  }
+
+  Future<void> showDeleteDialog(Collaborator collaborator) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text('Delete collaborator'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Container(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text('Are you shure to delete'),
+                  ],
+                ),
+                Container(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      collaborator.name,
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  child: const Text('CANCEL'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    'DELETE',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onPressed: () async {
+                    await _collaboratorsRepository.delete(collaborator);
+                    Navigator.of(context).pop();
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 }

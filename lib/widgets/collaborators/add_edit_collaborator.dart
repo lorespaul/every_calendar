@@ -113,17 +113,20 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
       actionButton: FloatingActionButton(
         onPressed: () {
           if (_formKey.currentState!.validate()) {
-            var now = DateTime.now();
-            if (isAdd) {
-              collaborator!.createdAt = now;
-              collaborator!.createdBy = _loginService.loggedUser.email;
-            }
-            collaborator!.modifiedAt = now;
-            collaborator!.modifiedBy = _loginService.loggedUser.email;
+            FocusScope.of(context).unfocus();
+            Future.delayed(const Duration(milliseconds: 100), () {
+              var now = DateTime.now();
+              if (isAdd) {
+                collaborator!.createdAt = now;
+                collaborator!.createdBy = _loginService.loggedUser.email;
+              }
+              collaborator!.modifiedAt = now;
+              collaborator!.modifiedBy = _loginService.loggedUser.email;
 
-            _collaboratorsRepository.insertOrUpdate(collaborator!).then((c) {
-              developer.log('collaborator: ' + collaboratorToJson(c!));
-              Navigator.of(context).pop();
+              _collaboratorsRepository.insertOrUpdate(collaborator!).then((c) {
+                developer.log('collaborator: ' + collaboratorToJson(c!));
+                Navigator.of(context).pop();
+              });
             });
           }
         },
