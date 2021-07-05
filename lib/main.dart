@@ -61,7 +61,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loginService = LoginService(onLoggedIn: initTenant);
+    _loginService = LoginService(onLoggedIn: () {
+      initTenant();
+      isLoggedIn = true;
+      setState(() {});
+    });
 
     Future.delayed(Duration.zero, () {
       _loaderService.showLoader(context);
@@ -79,7 +83,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     if (isLoggedIn) {
-      initTenant();
       return MainTabs(
         title: widget.title,
         onLogout: () {
