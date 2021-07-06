@@ -12,6 +12,8 @@ class DriveService {
   GoogleAuthClient? _googleAuthClient;
   DriveApi? _driveApi;
 
+  DriveService._internal();
+
   static const String _tenantFilePath =
       "https://drive.google.com/u/3/uc?id=1-clx4365I-z3Nq-jFmNQHKkMh_hWyLXd&export=download";
 
@@ -23,8 +25,6 @@ class DriveService {
     _driveApi ??= DriveApi(_googleAuthClient!);
     return _driveApi!;
   }
-
-  DriveService._internal();
 
   factory DriveService() {
     return _instance;

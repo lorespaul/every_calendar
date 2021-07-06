@@ -4,7 +4,15 @@ import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 class DatabaseManager {
+  static final DatabaseManager _instance = DatabaseManager._internal();
+  DatabaseManager._internal();
+
+  factory DatabaseManager() {
+    return _instance;
+  }
+
   static String Function()? getOwner;
+  Function(AbstractEntity, String)? onChange;
 
   Future<List<Map<String, dynamic>>?> getAll(String table) async {
     var db = await DatabaseSetup.getDatabase();
@@ -46,7 +54,7 @@ class DatabaseManager {
   Future<Map<String, dynamic>?> insertOrUpdate(
     String table,
     AbstractEntity entity, {
-    bool setBreadcrumbs = true,
+    bool isSynchronizer = false,
   }) async {
     String? uuid = entity.getUuid();
 
@@ -57,7 +65,7 @@ class DatabaseManager {
           table,
           uuid,
           entity,
-          setBreadcrumbs: setBreadcrumbs,
+          isSynchronizer: isSynchronizer,
         );
       }
     }
@@ -65,7 +73,7 @@ class DatabaseManager {
     return insert(
       table,
       entity,
-      setBreadcrumbs: setBreadcrumbs,
+      isSynchronizer: isSynchronizer,
     );
   }
 
@@ -73,11 +81,11 @@ class DatabaseManager {
     String table,
     AbstractEntity entity, {
     String uuid = '',
-    bool setBreadcrumbs = true,
+    bool isSynchronizer = false,
   }) async {
     var db = await DatabaseSetup.getDatabase();
 
-    if (setBreadcrumbs) {
+    if (!isSynchronizer) {
       var now = DateTime.now();
       entity.setCreatedAt(now);
       entity.setCreatedBy(DatabaseManager.getOwner!());
@@ -99,18 +107,22 @@ class DatabaseManager {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    return getById(table, id);
+    var result = await getById(table, id);
+    if (result != null && !isSynchronizer) {
+      onChange?.call(entity, result['uuid']);
+    }
+    return result;
   }
 
   Future<Map<String, dynamic>?> update(
     String table,
     String uuid,
     AbstractEntity entity, {
-    bool setBreadcrumbs = true,
+    bool isSynchronizer = false,
   }) async {
     var db = await DatabaseSetup.getDatabase();
 
-    if (setBreadcrumbs) {
+    if (!isSynchronizer) {
       entity.setModifiedAt(DateTime.now());
       entity.setModifiedBy(DatabaseManager.getOwner!());
     }
@@ -123,18 +135,24 @@ class DatabaseManager {
       whereArgs: [uuid],
     );
 
+    if (!isSynchronizer) {
+      onChange?.call(entity, uuid);
+    }
     return getByUuid(table, uuid);
   }
 
   Future<Map<String, dynamic>?> logicalDeleteByUuid(
     String table,
     String uuid,
-    AbstractEntity entity,
-  ) async {
+    AbstractEntity entity, {
+    bool isSynchronizer = false,
+  }) async {
     var db = await DatabaseSetup.getDatabase();
 
-    entity.setDeletedAt(DateTime.now());
-    entity.setDeletedBy(DatabaseManager.getOwner!());
+    if (!isSynchronizer) {
+      entity.setDeletedAt(DateTime.now());
+      entity.setDeletedBy(DatabaseManager.getOwner!());
+    }
 
     var value = entity.toMap();
     await db.update(
@@ -144,6 +162,9 @@ class DatabaseManager {
       whereArgs: [uuid],
     );
 
+    if (!isSynchronizer) {
+      onChange?.call(entity, uuid);
+    }
     return getByUuid(table, uuid);
   }
 

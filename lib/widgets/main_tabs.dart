@@ -43,9 +43,8 @@ class _MainTabsState extends State<MainTabs> {
           ActionWrapper(
             () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return AddEditCollaborator(
+                return const AddEditCollaborator(
                   title: 'Add Collaborator',
-                  onSync: onSync,
                 );
               })).then((value) => setState(() {}));
             },

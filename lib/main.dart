@@ -57,6 +57,8 @@ class _HomePageState extends State<HomePage> {
   final DriveService _driveService = DriveService();
   final FilesystemService _filesystemService = FilesystemService();
   final LoaderService _loaderService = LoaderService();
+  final SyncManager _syncManager = SyncManager();
+
   bool isLoggedIn = false;
 
   @override
@@ -71,9 +73,9 @@ class _HomePageState extends State<HomePage> {
     Future.delayed(Duration.zero, () {
       _loaderService.showLoader(context);
       _loginService!.silentlyLogin().then((value) {
-        if (value != null) {
-          setState(() => isLoggedIn = true);
-        }
+        // if (value != null) {
+        //   setState(() => isLoggedIn = true);
+        // }
         _loaderService.hideLoader();
       });
     });
@@ -110,24 +112,22 @@ class _HomePageState extends State<HomePage> {
   ) async {
     if (context != AllConstants.currentContext) {
       await DatabaseSetup.setup(context, () => _loginService!.loggedUser.email);
-    }
-    List<AbstractEntity> collections = [
-      Collaborator(),
-      Customer(),
-    ];
-    var driveApi = await _driveService.getDriveApi();
-    var loggedUser = _loginService!.loggedUser;
-    var syncManager = SyncManager.build(
-      context,
-      collections,
-      driveApi,
-      loggedUser,
-    );
-    if (entity == null) {
-      syncManager.synchronizeWithDrive();
     } else {
-      syncManager.synchronizeOne(entity, entity.getUuid());
+      context = DatabaseSetup.getContext();
     }
+    List<AbstractEntity> collections = entity == null
+        ? [
+            Collaborator(),
+            Customer(),
+          ]
+        : [entity];
+    var driveApi = await _driveService.getDriveApi();
+    _syncManager
+      ..tenantFolder = context
+      ..collections = collections
+      ..driveApi = driveApi
+      ..loggedUser = _loginService!.loggedUser;
+    return await _syncManager.synchronize();
   }
 
   Future<void> initTenant() async {

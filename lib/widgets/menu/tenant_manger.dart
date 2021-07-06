@@ -75,7 +75,7 @@ class _TenantManagerState extends State<TenantManager> {
         );
       },
       actionButton: FloatingActionButton(
-        onPressed: () async {
+        onPressed: () {
           if (_selectedTenant != null) {
             widget.onSync(_selectedTenant!.context);
           }

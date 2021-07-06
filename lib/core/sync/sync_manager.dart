@@ -12,27 +12,21 @@ class SyncManager {
   static const String _jsonMediaType = 'application/json';
   static const _mimeTypeFolder = 'application/vnd.google-apps.folder';
   static const _baseFolder = 'every_calendar';
-  final String _tenantFolder;
-  final List<AbstractEntity> _collections;
   final DatabaseManager _databaseManager = DatabaseManager();
-  final DriveApi _driveApi;
-  final GoogleSignInAccount _loggedUser;
+  String? tenantFolder;
+  List<AbstractEntity>? collections;
+  DriveApi? driveApi;
+  GoogleSignInAccount? loggedUser;
 
-  SyncManager.build(
-    String tenantFolder,
-    List<AbstractEntity> collections,
-    DriveApi driveApi,
-    GoogleSignInAccount loggedUser,
-  )   : _tenantFolder = tenantFolder,
-        _collections = collections,
-        _driveApi = driveApi,
-        _loggedUser = loggedUser;
+  SyncManager() {
+    _databaseManager.onChange = synchronizeOne;
+  }
 
-  Future<void> synchronizeWithDrive() async {
+  Future<void> synchronize() async {
     try {
       File remoteTenantFolder = await _getRemoteTenantFolder();
 
-      for (var collection in _collections) {
+      for (var collection in collections!) {
         var collectionName = collection.getTableName();
         var remoteFolder = await _getOrCreateDriveFolder(
           collectionName,
@@ -89,7 +83,7 @@ class SyncManager {
   Future<File> _getRemoteTenantFolder() async {
     File remoteBaseFolder = await _getOrCreateDriveFolder(_baseFolder);
     return await _getOrCreateDriveFolder(
-      _tenantFolder,
+      tenantFolder!,
       parentId: remoteBaseFolder.id!,
     );
   }
@@ -102,7 +96,7 @@ class SyncManager {
     for (var ld in localData) {
       // create remote file
       var localEntity = collection.fromMap(ld);
-      if (localEntity.getModifiedBy() == _loggedUser.email &&
+      if (localEntity.getModifiedBy() == loggedUser!.email &&
           localEntity.getDeletedAt() == null) {
         // create remote file only if is modified by me
         File fileMetadata = File()
@@ -111,7 +105,7 @@ class SyncManager {
           ..mimeType = _jsonMediaType;
         var bytes = utf8.encode(jsonEncode(localEntity.toMap()));
         Media media = Media(_getStream(bytes), bytes.length);
-        await _driveApi.files.create(fileMetadata, uploadMedia: media);
+        await driveApi!.files.create(fileMetadata, uploadMedia: media);
       } else {
         // else delete local data
         await _databaseManager.deleteByUuid(
@@ -151,7 +145,7 @@ class SyncManager {
             collectionName,
             remoteEntity,
             uuid: remoteEntity.getUuid(),
-            setBreadcrumbs: false,
+            isSynchronizer: true,
           );
           if (inserted != null) {
             synchronizedIds.add(inserted['id']);
@@ -162,7 +156,7 @@ class SyncManager {
         if (localEntity.getDeletedAt() != null) {
           // trash remote file and local data
           File fileMetadata = File()..trashed = true;
-          await _driveApi.files.update(fileMetadata, rf.id!);
+          await driveApi!.files.update(fileMetadata, rf.id!);
           await _databaseManager.deleteByUuid(
             collectionName,
             localEntity.getUuid(),
@@ -174,7 +168,7 @@ class SyncManager {
             ..mimeType = _jsonMediaType;
           var bytes = utf8.encode(jsonEncode(localEntity.toMap()));
           Media media = Media(_getStream(bytes), bytes.length);
-          _driveApi.files.update(
+          driveApi!.files.update(
             fileMetadata,
             rf.id!,
             uploadMedia: media,
@@ -189,7 +183,7 @@ class SyncManager {
               collectionName,
               remoteEntity.getUuid(),
               remoteEntity,
-              setBreadcrumbs: false,
+              isSynchronizer: true,
             );
             synchronizedIds.add(ld['id']);
           }
@@ -210,7 +204,7 @@ class SyncManager {
     File rf,
     AbstractEntity collection,
   ) async {
-    Media response = await _driveApi.files.get(
+    Media response = await driveApi!.files.get(
       rf.id!,
       downloadOptions: DownloadOptions.fullMedia,
     ) as Media;
@@ -234,7 +228,7 @@ class SyncManager {
     String name, {
     String parentId = '',
   }) async {
-    FileList folder = await _driveApi.files.list(
+    FileList folder = await driveApi!.files.list(
       q: "mimeType = '$_mimeTypeFolder' and name = '$name' and trashed = false",
     );
     File result;
@@ -247,14 +241,14 @@ class SyncManager {
       if (parentId.isNotEmpty) {
         fileMetadata.parents = [parentId];
       }
-      result = await _driveApi.files.create(fileMetadata);
+      result = await driveApi!.files.create(fileMetadata);
     }
 
     return result;
   }
 
   Future<List<File>> _getRemoteFilesInFolder(String parentId) async {
-    FileList folder = await _driveApi.files.list(
+    FileList folder = await driveApi!.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents",
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );
@@ -266,7 +260,7 @@ class SyncManager {
 
   Future<List<File>> _getRemoteFileInFolder(
       String name, String parentId) async {
-    FileList folder = await _driveApi.files.list(
+    FileList folder = await driveApi!.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents and name = '$name'",
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );

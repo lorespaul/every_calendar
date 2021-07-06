@@ -4,15 +4,20 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseSetup {
   static Future<Database>? _database;
+  static String? _context;
 
   static Future<Database> getDatabase() async {
     return await _database!;
   }
 
+  static String getContext() {
+    return _context!;
+  }
+
   static Future<void> setup(String tenant, String Function() getOwner) async {
     DatabaseManager.getOwner = getOwner;
     var dbName = '$tenant.db';
-
+    _context = tenant;
     _database = openDatabase(
       join(await getDatabasesPath(), dbName),
       onCreate: (db, version) async {

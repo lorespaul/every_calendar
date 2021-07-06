@@ -29,58 +29,60 @@ class _CollaboratorsState extends State<Collaborators> {
           return SizedBox(
             height: MediaQuery.of(context).size.height -
                 Dimensions.scaffoldTopAndBottomBarHeight,
-            child: ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (_, index) {
-                final c = snapshot.data![index];
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.only(left: 10),
-                          child: Text(c.name),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(left: 10),
-                          child: Text(c.email),
-                        ),
-                        const Spacer(),
-                        Container(
-                          margin: const EdgeInsets.only(left: 1),
-                          child: IconButton(
-                            onPressed: () async {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) {
-                                return AddEditCollaborator(
-                                  title: 'Edit Collaborator',
-                                  collaborator: c,
-                                  onSync: widget.onSync,
-                                );
-                              })).then((value) => setState(() {}));
-                            },
-                            icon: const Icon(
-                              Icons.edit,
-                              color: Colors.black45,
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (_, index) {
+                  final c = snapshot.data![index];
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(left: 10),
+                            child: Text(c.name),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(left: 10),
+                            child: Text(c.email),
+                          ),
+                          const Spacer(),
+                          Container(
+                            margin: const EdgeInsets.only(left: 1),
+                            child: IconButton(
+                              onPressed: () async {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return AddEditCollaborator(
+                                    title: 'Edit Collaborator',
+                                    collaborator: c,
+                                  );
+                                })).then((value) => setState(() {}));
+                              },
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.black45,
+                              ),
                             ),
                           ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.only(left: 1),
-                          child: IconButton(
-                            onPressed: () async => await showDeleteDialog(c),
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.black45,
+                          Container(
+                            margin: const EdgeInsets.only(left: 1),
+                            child: IconButton(
+                              onPressed: () async => await showDeleteDialog(c),
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.black45,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           );
         } else if (snapshot.hasError) {
@@ -95,6 +97,11 @@ class _CollaboratorsState extends State<Collaborators> {
 
   Future<List<Collaborator>> getCollaborators() {
     return _collaboratorsRepository.getAll(Collaborator());
+  }
+
+  Future<void> _onRefresh() async {
+    await widget.onSync(AllConstants.currentContext, Collaborator());
+    setState(() {});
   }
 
   Future<void> showDeleteDialog(Collaborator collaborator) async {
@@ -149,7 +156,6 @@ class _CollaboratorsState extends State<Collaborators> {
                   ),
                   onPressed: () async {
                     await _collaboratorsRepository.delete(collaborator);
-                    widget.onSync(AllConstants.currentContext, collaborator);
                     Navigator.of(context).pop();
                     setState(() {});
                   },
