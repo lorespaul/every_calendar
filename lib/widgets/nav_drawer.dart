@@ -1,4 +1,4 @@
-import 'package:every_calendar/widgets/menu/tenant_manger.dart';
+import 'package:every_calendar/widgets/tenants/tenants.dart';
 import 'package:flutter/material.dart';
 
 class NavDrawer extends StatelessWidget {
@@ -53,7 +53,7 @@ class NavDrawer extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pop();
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return TenantManager(
+                return Tenants(
                   title: title,
                   onSync: onSync,
                 );

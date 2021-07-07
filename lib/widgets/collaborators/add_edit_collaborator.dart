@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:email_validator/email_validator.dart';
 import 'package:every_calendar/core/db/base_repository.dart';
 import 'package:every_calendar/model/collaborator.dart';
-import 'package:every_calendar/services/drive_service.dart';
+import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/services/loader_service.dart';
 import 'package:every_calendar/services/login_service.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
@@ -29,7 +29,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
   final _formKey = GlobalKey<FormState>();
   final LoaderService _loaderService = LoaderService();
   final LoginService _loginService = LoginService();
-  final DriveService _driveService = DriveService();
+  final DriveManager _driveManager = DriveManager();
   final _textFieldStyle = const TextStyle(
     // fontSize: 30,
     color: Colors.black,
@@ -131,7 +131,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                   if (isAdd) {
                     collaborator!.createdAt = now;
                     collaborator!.createdBy = _loginService.loggedUser.email;
-                    await _driveService.grantPermission(collaborator!.email);
+                    await _driveManager.grantPermission(collaborator!.email);
                   }
                   collaborator!.modifiedAt = now;
                   collaborator!.modifiedBy = _loginService.loggedUser.email;

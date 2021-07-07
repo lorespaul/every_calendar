@@ -2,14 +2,15 @@ import 'dart:io';
 
 import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/database_setup.dart';
-import 'package:every_calendar/core/drive/sync_manager.dart';
-import 'package:every_calendar/services/drive_service.dart';
+import 'package:every_calendar/core/shared/shared_constants.dart';
+import 'package:every_calendar/core/sync/sync_manager.dart';
+import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/services/filesystem_service.dart';
 import 'package:every_calendar/services/loader_service.dart';
 import 'package:every_calendar/services/login_service.dart';
 import 'package:every_calendar/widgets/login.dart';
 import 'package:every_calendar/widgets/main_tabs.dart';
-import 'package:every_calendar/widgets/menu/tenant_manger.dart';
+import 'package:every_calendar/widgets/tenants/tenants.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
@@ -17,7 +18,7 @@ import 'package:collection/collection.dart';
 import 'constants/prefs_keys.dart';
 import 'core/db/abstract_entity.dart';
 import 'model/collaborator.dart';
-import 'model/config.dart';
+import 'core/google/config.dart';
 import 'model/customer.dart';
 
 void main() async {
@@ -54,7 +55,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   LoginService? _loginService;
-  final DriveService _driveService = DriveService();
+  final DriveManager _driveManager = DriveManager();
   final FilesystemService _filesystemService = FilesystemService();
   final LoaderService _loaderService = LoaderService();
   final SyncManager _syncManager = SyncManager();
@@ -121,46 +122,45 @@ class _HomePageState extends State<HomePage> {
             Customer(),
           ]
         : [entity];
-    var driveApi = await _driveService.getDriveApi();
     _syncManager
       ..tenantFolder = context
       ..collections = collections
-      ..driveApi = driveApi
       ..loggedUser = _loginService!.loggedUser;
     return await _syncManager.synchronize();
   }
 
   Future<void> initTenant() async {
-    File configFile = await _filesystemService.getTenantFile();
-    await _driveService.syncTenants(configFile);
-    var fileValue = await _filesystemService.getTenantFileJson();
-    var config = configFromJson(fileValue);
+    var config = await _driveManager.getConfig();
     var prefs = await SharedPreferences.getInstance();
-    var tenantId = prefs.getInt(PrefsKeys.tenant);
+    var tenantId = prefs.getInt(SharedConstants.tenant);
     if (tenantId != null) {
-      var selectedTenant = config.tenants.firstWhereOrNull(
+      var selectedTenant = config!.tenants.firstWhereOrNull(
         (e) => e.id == tenantId,
       );
       await setupTenantAndSync(selectedTenant!.context, null);
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return TenantManager(
-              title: widget.title,
-              onSync: (c) async {
-                setupTenantAndSync(c, null);
-                await Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (c) => widget),
-                );
-                setState(() => isLoggedIn = true);
-              },
-            );
-          },
-        ),
-      );
+      chooseTenant();
     }
+  }
+
+  chooseTenant() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return Tenants(
+            title: widget.title,
+            onSync: (c) async {
+              setupTenantAndSync(c, null);
+              await Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (c) => widget),
+              );
+              setState(() => isLoggedIn = true);
+            },
+          );
+        },
+      ),
+    );
   }
 }

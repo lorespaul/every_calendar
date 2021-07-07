@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:every_calendar/constants/prefs_keys.dart';
-import 'package:every_calendar/model/config.dart';
-import 'package:every_calendar/model/tenant.dart';
-import 'package:every_calendar/services/drive_service.dart';
+import 'package:every_calendar/core/google/config.dart';
+import 'package:every_calendar/core/google/tenant.dart';
+import 'package:every_calendar/core/google/drive_manager.dart';
+import 'package:every_calendar/core/shared/shared_constants.dart';
 import 'package:every_calendar/services/filesystem_service.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,8 +13,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class TenantManager extends StatefulWidget {
-  const TenantManager({
+class Tenants extends StatefulWidget {
+  const Tenants({
     Key? key,
     required this.title,
     required this.onSync,
@@ -23,12 +24,11 @@ class TenantManager extends StatefulWidget {
   final Function(String) onSync;
 
   @override
-  State<StatefulWidget> createState() => _TenantManagerState();
+  State<StatefulWidget> createState() => _TenantsState();
 }
 
-class _TenantManagerState extends State<TenantManager> {
-  final DriveService _driveService = DriveService();
-  final FilesystemService _filesystemService = FilesystemService();
+class _TenantsState extends State<Tenants> {
+  final DriveManager _driveManager = DriveManager();
   SharedPreferences? _prefs;
 
   Config? _config;
@@ -48,7 +48,7 @@ class _TenantManagerState extends State<TenantManager> {
                 hint: const Text('Select tenant'),
                 value: _selectedTenant,
                 onChanged: (v) async {
-                  _prefs!.setInt(PrefsKeys.tenant, v!.id);
+                  _prefs!.setInt(SharedConstants.tenant, v!.id);
                   setState(() => _selectedTenant = v);
                 },
                 items: config.tenants.map((tenant) {
@@ -87,14 +87,9 @@ class _TenantManagerState extends State<TenantManager> {
   }
 
   Future<Config> _getConfig() async {
-    if (_config == null) {
-      File configFile = await _filesystemService.getTenantFile();
-      await _driveService.syncTenants(configFile);
-      var fileValue = await _filesystemService.getTenantFileJson();
-      _config = configFromJson(fileValue);
-    }
+    _config ??= await _driveManager.getConfig();
     _prefs ??= await SharedPreferences.getInstance();
-    var tenantId = _prefs!.getInt(PrefsKeys.tenant);
+    var tenantId = _prefs!.getInt(SharedConstants.tenant);
     if (tenantId != null) {
       _selectedTenant = _config!.tenants.firstWhereOrNull(
         (e) => e.id == tenantId,
