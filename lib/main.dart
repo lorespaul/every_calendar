@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/database_setup.dart';
-import 'package:every_calendar/core/sync/sync_manager.dart';
+import 'package:every_calendar/core/drive/sync_manager.dart';
 import 'package:every_calendar/services/drive_service.dart';
 import 'package:every_calendar/services/filesystem_service.dart';
 import 'package:every_calendar/services/loader_service.dart';
@@ -149,12 +149,13 @@ class _HomePageState extends State<HomePage> {
           builder: (context) {
             return TenantManager(
               title: widget.title,
-              onSync: (c) {
+              onSync: (c) async {
                 setupTenantAndSync(c, null);
-                Navigator.pushReplacement(
+                await Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (c) => widget),
                 );
+                setState(() => isLoggedIn = true);
               },
             );
           },

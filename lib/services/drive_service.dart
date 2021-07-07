@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:developer' as developer;
 
+import 'package:every_calendar/core/db/database_setup.dart';
 import 'package:every_calendar/http/google_auth_client.dart';
 import 'package:every_calendar/services/login_service.dart';
 import 'package:googleapis/drive/v3.dart';
@@ -63,5 +64,50 @@ class DriveService {
     }
 
     return completer.future;
+  }
+
+  Future<void> grantPermission(String email) async {
+    var driveApi = await getDriveApi();
+    File folder = await _getRemoteTenantFolder(DatabaseSetup.getContext());
+    var request = Permission()
+      ..type = 'user'
+      ..role = 'writer'
+      ..emailAddress = email;
+    await driveApi.permissions.create(request, folder.id!);
+  }
+
+  static const _mimeTypeFolder = 'application/vnd.google-apps.folder';
+  static const _baseFolder = 'every_calendar';
+
+  Future<File> _getRemoteTenantFolder(String context) async {
+    File remoteBaseFolder = await _getOrCreateDriveFolder(_baseFolder);
+    return await _getOrCreateDriveFolder(
+      context,
+      parentId: remoteBaseFolder.id!,
+    );
+  }
+
+  Future<File> _getOrCreateDriveFolder(
+    String name, {
+    String parentId = '',
+  }) async {
+    var driveApi = await getDriveApi();
+    FileList folder = await driveApi.files.list(
+      q: "mimeType = '$_mimeTypeFolder' and name = '$name' and trashed = false",
+    );
+    File result;
+    if (folder.files != null && folder.files!.isNotEmpty) {
+      result = folder.files!.first;
+    } else {
+      File fileMetadata = File()
+        ..name = name
+        ..mimeType = _mimeTypeFolder;
+      if (parentId.isNotEmpty) {
+        fileMetadata.parents = [parentId];
+      }
+      result = await driveApi.files.create(fileMetadata);
+    }
+
+    return result;
   }
 }

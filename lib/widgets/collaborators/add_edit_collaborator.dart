@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:email_validator/email_validator.dart';
 import 'package:every_calendar/core/db/base_repository.dart';
 import 'package:every_calendar/model/collaborator.dart';
+import 'package:every_calendar/services/drive_service.dart';
+import 'package:every_calendar/services/loader_service.dart';
 import 'package:every_calendar/services/login_service.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,7 +27,9 @@ class AddEditCollaborator extends StatefulWidget {
 
 class _AddEditCollaboratorState extends State<AddEditCollaborator> {
   final _formKey = GlobalKey<FormState>();
+  final LoaderService _loaderService = LoaderService();
   final LoginService _loginService = LoginService();
+  final DriveService _driveService = DriveService();
   final _textFieldStyle = const TextStyle(
     // fontSize: 30,
     color: Colors.black,
@@ -116,33 +120,95 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
           );
         },
         actionButton: FloatingActionButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              FocusScope.of(context).unfocus();
-              Future.delayed(const Duration(milliseconds: 100), () {
-                var now = DateTime.now();
-                if (isAdd) {
-                  collaborator!.createdAt = now;
-                  collaborator!.createdBy = _loginService.loggedUser.email;
-                }
-                collaborator!.modifiedAt = now;
-                collaborator!.modifiedBy = _loginService.loggedUser.email;
-
-                _collaboratorsRepository
-                    .insertOrUpdate(collaborator!)
-                    .then((c) {
-                  if (c != null) {
-                    developer.log('collaborator: ' + collaboratorToJson(c));
+          onPressed: () async {
+            _loaderService.showLoader(context);
+            try {
+              if (_formKey.currentState!.validate()) {
+                FocusScope.of(context).unfocus();
+                await Future.delayed(const Duration(milliseconds: 100),
+                    () async {
+                  var now = DateTime.now();
+                  if (isAdd) {
+                    collaborator!.createdAt = now;
+                    collaborator!.createdBy = _loginService.loggedUser.email;
+                    await _driveService.grantPermission(collaborator!.email);
                   }
-                  Navigator.of(context).pop();
+                  collaborator!.modifiedAt = now;
+                  collaborator!.modifiedBy = _loginService.loggedUser.email;
+
+                  _collaboratorsRepository
+                      .insertOrUpdate(collaborator!)
+                      .then((c) {
+                    if (c != null) {
+                      developer.log('collaborator: ' + collaboratorToJson(c));
+                    }
+                    Navigator.of(context).pop();
+                  });
                 });
-              });
+              }
+            } catch (e) {
+              showErrorDialog();
+            } finally {
+              _loaderService.hideLoader();
             }
           },
           child: isAdd ? const Icon(Icons.add) : const Icon(Icons.save_alt),
           backgroundColor: Colors.green,
         ),
       ),
+    );
+  }
+
+  Future<void> showErrorDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text('Error'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Container(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text('Can\'t share with'),
+                  ],
+                ),
+                Container(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      collaborator!.email,
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  child: const Text('CANCEL'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
