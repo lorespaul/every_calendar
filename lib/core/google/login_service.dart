@@ -7,21 +7,20 @@ import 'dart:io';
 import 'package:googleapis/drive/v2.dart';
 
 class LoginService {
-  static final LoginService _instance = LoginService._internal();
-
   static const String webClientId =
       '343383817775-sppv52k52ce4e7eq46fkcmk0edn499fr.apps.googleusercontent.com';
   static const String desktopClientId =
       '343383817775-sppv52k52ce4e7eq46fkcmk0edn499fr.apps.googleusercontent.com';
 
+  static final LoginService _instance = LoginService._internal();
+
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
-  Function()? _onLoggedIn;
+  Function()? onLoggedIn;
 
   GoogleSignInAccount get loggedUser => _currentUser!;
 
-  factory LoginService({Function()? onLoggedIn}) {
-    _instance._onLoggedIn = onLoggedIn;
+  factory LoginService() {
     return _instance;
   }
 
@@ -29,7 +28,7 @@ class LoginService {
     _googleSignIn ??= _initGoogleSignIn();
     _googleSignIn!.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       _currentUser = account;
-      _onLoggedIn?.call();
+      onLoggedIn?.call();
     });
   }
 
@@ -52,7 +51,7 @@ class LoginService {
   }
 
   Future<GoogleSignInAccount?> silentlyLogin() async {
-    await _googleSignIn!.signInSilently();
+    return await _googleSignIn!.signInSilently();
   }
 
   Future<GoogleSignInAccount?> login() async {

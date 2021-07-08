@@ -4,8 +4,8 @@ import 'package:email_validator/email_validator.dart';
 import 'package:every_calendar/core/db/base_repository.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
-import 'package:every_calendar/services/loader_service.dart';
-import 'package:every_calendar/services/login_service.dart';
+import 'package:every_calendar/controllers/loader_controller.dart';
+import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +27,7 @@ class AddEditCollaborator extends StatefulWidget {
 
 class _AddEditCollaboratorState extends State<AddEditCollaborator> {
   final _formKey = GlobalKey<FormState>();
-  final LoaderService _loaderService = LoaderService();
+  final LoaderController _loaderController = LoaderController();
   final LoginService _loginService = LoginService();
   final DriveManager _driveManager = DriveManager();
   final _textFieldStyle = const TextStyle(
@@ -121,7 +121,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
         },
         actionButton: FloatingActionButton(
           onPressed: () async {
-            _loaderService.showLoader(context);
+            _loaderController.showLoader(context);
             try {
               if (_formKey.currentState!.validate()) {
                 FocusScope.of(context).unfocus();
@@ -149,7 +149,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
             } catch (e) {
               showErrorDialog();
             } finally {
-              _loaderService.hideLoader();
+              _loaderController.hideLoader();
             }
           },
           child: isAdd ? const Icon(Icons.add) : const Icon(Icons.save_alt),

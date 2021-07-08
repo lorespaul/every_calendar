@@ -3,17 +3,17 @@ import 'dart:async';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/database_manager.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
+import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'dart:developer' as developer;
 
 class SyncManager {
   final DatabaseManager _databaseManager = DatabaseManager();
   final DriveManager _driveManager = DriveManager();
+  final LoginService _loginService = LoginService();
   String? tenantFolder;
   List<AbstractEntity>? collections;
-  GoogleSignInAccount? loggedUser;
 
   SyncManager() {
     _databaseManager.onChange = synchronizeOne;
@@ -88,7 +88,7 @@ class SyncManager {
     for (var ld in localData) {
       // create remote file
       var localEntity = collection.fromMap(ld);
-      if (localEntity.getModifiedBy() == loggedUser!.email &&
+      if (localEntity.getModifiedBy() == _loginService.loggedUser.email &&
           localEntity.getDeletedAt() == null) {
         // create remote file only if is modified by me
         await _driveManager.createFile(

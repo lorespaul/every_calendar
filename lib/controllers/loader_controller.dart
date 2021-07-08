@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class LoaderService {
-  static final LoaderService _instance = LoaderService._internal();
-  LoaderService._internal();
+class LoaderController {
+  static final LoaderController _instance = LoaderController._internal();
+  LoaderController._internal();
 
-  factory LoaderService() {
+  factory LoaderController() {
     return _instance;
   }
 
@@ -42,7 +42,7 @@ class LoaderService {
   }
 
   void hideLoader() {
-    if (_context != null) {
+    if (_context != null && _counter > 0) {
       _counter--;
       if (_counter == 0) {
         Navigator.pop(_context!);

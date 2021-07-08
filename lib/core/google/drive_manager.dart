@@ -5,9 +5,9 @@ import 'dart:developer' as developer;
 
 import 'package:every_calendar/core/db/database_setup.dart';
 import 'package:every_calendar/core/google/config.dart';
+import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
 import 'package:every_calendar/http/google_auth_client.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,15 +19,16 @@ class DriveManager {
   static const String _baseFolder = 'every_calendar';
   static const String _jsonMediaType = 'application/json';
 
+  final LoginService _loginService = LoginService();
   GoogleAuthClient? _googleAuthClient;
   DriveApi? _driveApi;
 
   static const String _tenantFileUrl =
       "https://drive.google.com/u/3/uc?id=1-clx4365I-z3Nq-jFmNQHKkMh_hWyLXd&export=download";
 
-  Future<DriveApi> getDriveApi(GoogleSignInAccount loggedUser) async {
+  Future<DriveApi> getDriveApi() async {
     if (_googleAuthClient == null) {
-      var headers = await loggedUser.authHeaders;
+      var headers = await _loginService.loggedUser.authHeaders;
       _googleAuthClient = GoogleAuthClient(headers);
     }
     _driveApi ??= DriveApi(_googleAuthClient!);
@@ -55,6 +56,7 @@ class DriveManager {
           onError: (e) => completer.completeError(e),
         );
 
+        await completer.future;
         String json = utf8.decode(bytes);
         await prefs.setString(SharedConstants.config, json);
         return configFromJson(json);
@@ -72,7 +74,8 @@ class DriveManager {
   }
 
   Future<Map<String, dynamic>?> downloadFile(String fileId) async {
-    Media response = await _driveApi!.files.get(
+    var driveApi = await getDriveApi();
+    Media response = await driveApi.files.get(
       fileId,
       downloadOptions: DownloadOptions.fullMedia,
     ) as Media;
@@ -97,13 +100,14 @@ class DriveManager {
     String uuid,
     String parentId,
   ) async {
+    var driveApi = await getDriveApi();
     File fileMetadata = File()
       ..name = '$uuid${SharedConstants.jsonExtension}'
       ..parents = [parentId]
       ..mimeType = _jsonMediaType;
     var bytes = utf8.encode(jsonEncode(entity));
     Media media = Media(_getStream(bytes), bytes.length);
-    return await _driveApi!.files.create(fileMetadata, uploadMedia: media);
+    return await driveApi.files.create(fileMetadata, uploadMedia: media);
   }
 
   Future<File> updateFile(
@@ -111,12 +115,13 @@ class DriveManager {
     String uuid,
     String fileId,
   ) async {
+    var driveApi = await getDriveApi();
     File fileMetadata = File()
       ..name = '$uuid${SharedConstants.jsonExtension}'
       ..mimeType = _jsonMediaType;
     var bytes = utf8.encode(jsonEncode(entity));
     Media media = Media(_getStream(bytes), bytes.length);
-    return await _driveApi!.files.update(
+    return await driveApi.files.update(
       fileMetadata,
       fileId,
       uploadMedia: media,
@@ -124,17 +129,19 @@ class DriveManager {
   }
 
   Future<File> trashFile(String fileId) async {
+    var driveApi = await getDriveApi();
     File fileMetadata = File()..trashed = true;
-    return await _driveApi!.files.update(fileMetadata, fileId);
+    return await driveApi.files.update(fileMetadata, fileId);
   }
 
   Future<void> grantPermission(String email) async {
+    var driveApi = await getDriveApi();
     File folder = await getRemoteTenantFolder(DatabaseSetup.getContext());
     var request = Permission()
       ..type = 'user'
       ..role = 'writer'
       ..emailAddress = email;
-    await _driveApi!.permissions.create(request, folder.id!);
+    await driveApi.permissions.create(request, folder.id!);
   }
 
   Future<File> getRemoteTenantFolder(String context) async {
@@ -153,7 +160,8 @@ class DriveManager {
     String name, {
     String parentId = '',
   }) async {
-    FileList folder = await _driveApi!.files.list(
+    var driveApi = await getDriveApi();
+    FileList folder = await driveApi.files.list(
       q: "mimeType = '$_mimeTypeFolder' and name = '$name' and trashed = false",
     );
     File result;
@@ -166,14 +174,15 @@ class DriveManager {
       if (parentId.isNotEmpty) {
         fileMetadata.parents = [parentId];
       }
-      result = await _driveApi!.files.create(fileMetadata);
+      result = await driveApi.files.create(fileMetadata);
     }
 
     return result;
   }
 
   Future<List<File>> getRemoteFilesInFolder(String parentId) async {
-    FileList folder = await _driveApi!.files.list(
+    var driveApi = await getDriveApi();
+    FileList folder = await driveApi.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents",
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );
@@ -184,7 +193,8 @@ class DriveManager {
   }
 
   Future<List<File>> getRemoteFileInFolder(String name, String parentId) async {
-    FileList folder = await _driveApi!.files.list(
+    var driveApi = await getDriveApi();
+    FileList folder = await driveApi.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents and name = '$name'",
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );

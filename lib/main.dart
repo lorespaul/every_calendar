@@ -1,13 +1,10 @@
-import 'dart:io';
-
 import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/database_setup.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
 import 'package:every_calendar/core/sync/sync_manager.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
-import 'package:every_calendar/services/filesystem_service.dart';
-import 'package:every_calendar/services/loader_service.dart';
-import 'package:every_calendar/services/login_service.dart';
+import 'package:every_calendar/controllers/loader_controller.dart';
+import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/widgets/login.dart';
 import 'package:every_calendar/widgets/main_tabs.dart';
 import 'package:every_calendar/widgets/tenants/tenants.dart';
@@ -15,10 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
 
-import 'constants/prefs_keys.dart';
 import 'core/db/abstract_entity.dart';
 import 'model/collaborator.dart';
-import 'core/google/config.dart';
 import 'model/customer.dart';
 
 void main() async {
@@ -54,10 +49,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  LoginService? _loginService;
+  final LoginService _loginService = LoginService();
   final DriveManager _driveManager = DriveManager();
-  final FilesystemService _filesystemService = FilesystemService();
-  final LoaderService _loaderService = LoaderService();
+  final LoaderController _loaderController = LoaderController();
   final SyncManager _syncManager = SyncManager();
 
   bool isLoggedIn = false;
@@ -65,19 +59,20 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loginService = LoginService(onLoggedIn: () {
-      initTenant();
+    _loginService.onLoggedIn = () async {
+      await initTenant();
       isLoggedIn = true;
+      _loaderController.hideLoader();
       setState(() {});
-    });
+    };
 
     Future.delayed(Duration.zero, () {
-      _loaderService.showLoader(context);
-      _loginService!.silentlyLogin().then((value) {
-        // if (value != null) {
-        //   setState(() => isLoggedIn = true);
-        // }
-        _loaderService.hideLoader();
+      _loaderController.showLoader(context);
+      _loginService.silentlyLogin().then((value) {
+        if (value != null) {
+          setState(() => isLoggedIn = true);
+        }
+        _loaderController.hideLoader();
       });
     });
   }
@@ -88,10 +83,10 @@ class _HomePageState extends State<HomePage> {
       return MainTabs(
         title: widget.title,
         onLogout: () {
-          _loaderService.showLoader(context);
-          _loginService!.logout().then((value) {
+          _loaderController.showLoader(context);
+          _loginService.logout().then((value) {
             setState(() => isLoggedIn = false);
-            _loaderService.hideLoader();
+            _loaderController.hideLoader();
           });
         },
         onSync: setupTenantAndSync,
@@ -99,11 +94,7 @@ class _HomePageState extends State<HomePage> {
     }
     return Login(
       title: widget.title,
-      onLogin: () => _loginService!.login().then((value) {
-        if (value != null) {
-          setState(() => isLoggedIn = true);
-        }
-      }),
+      onLogin: () => _loginService.login(),
     );
   }
 
@@ -112,7 +103,7 @@ class _HomePageState extends State<HomePage> {
     AbstractEntity? entity,
   ) async {
     if (context != AllConstants.currentContext) {
-      await DatabaseSetup.setup(context, () => _loginService!.loggedUser.email);
+      await DatabaseSetup.setup(context, () => _loginService.loggedUser.email);
     } else {
       context = DatabaseSetup.getContext();
     }
@@ -124,8 +115,7 @@ class _HomePageState extends State<HomePage> {
         : [entity];
     _syncManager
       ..tenantFolder = context
-      ..collections = collections
-      ..loggedUser = _loginService!.loggedUser;
+      ..collections = collections;
     return await _syncManager.synchronize();
   }
 
@@ -152,11 +142,12 @@ class _HomePageState extends State<HomePage> {
             title: widget.title,
             onSync: (c) async {
               setupTenantAndSync(c, null);
-              await Navigator.pushReplacement(
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (c) => widget),
+                MaterialPageRoute(builder: (c) {
+                  return HomePage(title: widget.title);
+                }),
               );
-              setState(() => isLoggedIn = true);
             },
           );
         },
