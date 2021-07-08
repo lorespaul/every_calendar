@@ -41,7 +41,10 @@ class LoaderController {
     );
   }
 
-  void hideLoader() {
+  void hideLoader({BuildContext? context}) {
+    if (context != null) {
+      _context = context;
+    }
     if (_context != null && _counter > 0) {
       _counter--;
       if (_counter == 0) {

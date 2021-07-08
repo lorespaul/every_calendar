@@ -1,7 +1,8 @@
 import 'package:every_calendar/constants/all_constants.dart';
-import 'package:every_calendar/constants/dimensions.dart';
+import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/base_repository.dart';
+import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,8 @@ class Collaborators extends StatefulWidget {
 }
 
 class _CollaboratorsState extends State<Collaborators> {
+  final DriveManager _driveManager = DriveManager();
+  final LoaderController _loaderController = LoaderController();
   final _collaboratorsRepository = BaseRepository<Collaborator>();
 
   @override
@@ -29,8 +32,13 @@ class _CollaboratorsState extends State<Collaborators> {
           return Expanded(
             child: RefreshIndicator(
               onRefresh: _onRefresh,
+              backgroundColor: Colors.green,
+              color: Colors.white,
               child: ListView.builder(
-                shrinkWrap: true,
+                padding: const EdgeInsets.all(5.0),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 itemCount: snapshot.data!.length,
                 itemBuilder: (_, index) {
                   final c = snapshot.data![index];
@@ -107,7 +115,7 @@ class _CollaboratorsState extends State<Collaborators> {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
+      builder: (BuildContext _) {
         return AlertDialog(
           title: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -142,23 +150,29 @@ class _CollaboratorsState extends State<Collaborators> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const Spacer(),
                 TextButton(
                   child: const Text('CANCEL'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
+                const Spacer(flex: 3),
                 TextButton(
                   child: const Text(
                     'DELETE',
                     style: TextStyle(color: Colors.red),
                   ),
                   onPressed: () async {
-                    await _collaboratorsRepository.delete(collaborator);
                     Navigator.of(context).pop();
+                    _loaderController.showLoader(context);
+                    await _driveManager.denyPermission(collaborator.email);
+                    await _collaboratorsRepository.delete(collaborator);
+                    _loaderController.hideLoader();
                     setState(() {});
                   },
                 ),
+                const Spacer(),
               ],
             ),
           ],

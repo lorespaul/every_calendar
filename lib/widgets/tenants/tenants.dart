@@ -1,4 +1,5 @@
 import 'package:every_calendar/core/google/config.dart';
+import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/core/google/tenant.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
@@ -25,6 +26,7 @@ class Tenants extends StatefulWidget {
 
 class _TenantsState extends State<Tenants> {
   final DriveManager _driveManager = DriveManager();
+  final LoginService _loginService = LoginService();
   SharedPreferences? _prefs;
 
   Config? _config;
@@ -45,6 +47,10 @@ class _TenantsState extends State<Tenants> {
                 value: _selectedTenant,
                 onChanged: (v) async {
                   _prefs!.setInt(SharedConstants.tenant, v!.id);
+                  _prefs!.setBool(
+                    SharedConstants.isTenant,
+                    v.driveAccount == _loginService.loggedUser.email,
+                  );
                   setState(() => _selectedTenant = v);
                 },
                 items: config.tenants.map((tenant) {

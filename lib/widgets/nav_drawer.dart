@@ -26,14 +26,16 @@ class NavDrawer extends StatelessWidget {
           DrawerHeader(
             child: Column(
               children: [
+                const Spacer(),
                 GoogleUserCircleAvatar(
                   identity: _loginService.loggedUser,
                 ),
                 const Spacer(),
-                const Text(
-                  'Side menu',
-                  style: TextStyle(color: Colors.white, fontSize: 25),
+                Text(
+                  _loginService.loggedUser.displayName ?? '',
+                  style: const TextStyle(color: Colors.white, fontSize: 25),
                 ),
+                const Spacer(),
               ],
             ),
             decoration: const BoxDecoration(

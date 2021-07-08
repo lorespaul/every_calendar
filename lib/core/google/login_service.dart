@@ -66,7 +66,10 @@ class LoginService {
   }
 
   Future<void> logout() async {
-    await _googleSignIn!.disconnect();
+    try {
+      await _googleSignIn!.disconnect();
+      // ignore: empty_catches
+    } catch (e) {}
     _currentUser = null;
   }
 
