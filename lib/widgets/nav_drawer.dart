@@ -1,8 +1,11 @@
+import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/widgets/tenants/tenants.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in/widgets.dart';
 
 class NavDrawer extends StatelessWidget {
-  const NavDrawer({
+  NavDrawer({
     Key? key,
     required this.title,
     required this.onLogout,
@@ -12,6 +15,7 @@ class NavDrawer extends StatelessWidget {
   final String title;
   final Function() onLogout;
   final Function(String) onSync;
+  final LoginService _loginService = LoginService();
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +23,20 @@ class NavDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
-            child: Text(
-              'Side menu',
-              style: TextStyle(color: Colors.white, fontSize: 25),
+          DrawerHeader(
+            child: Column(
+              children: [
+                GoogleUserCircleAvatar(
+                  identity: _loginService.loggedUser,
+                ),
+                const Spacer(),
+                const Text(
+                  'Side menu',
+                  style: TextStyle(color: Colors.white, fontSize: 25),
+                ),
+              ],
             ),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.green,
               // image: DecorationImage(
               //   fit: BoxFit.fill,

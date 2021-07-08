@@ -11,9 +11,15 @@
             "type": "dart"
         },
         {
-            "name": "android",
+            "name": "android emulator",
             "request": "launch",
             "args": ["-d", "emulator-5554"],
+            "type": "dart"
+        },
+        {
+            "name": "huawey",
+            "request": "launch",
+            "args": ["-d", "NNF6R18C12000842"],
             "type": "dart"
         },
         {

@@ -163,6 +163,7 @@ class DriveManager {
     var driveApi = await getDriveApi();
     FileList folder = await driveApi.files.list(
       q: "mimeType = '$_mimeTypeFolder' and name = '$name' and trashed = false",
+      corpora: 'user',
     );
     File result;
     if (folder.files != null && folder.files!.isNotEmpty) {
@@ -184,6 +185,7 @@ class DriveManager {
     var driveApi = await getDriveApi();
     FileList folder = await driveApi.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents",
+      corpora: 'user',
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );
     if (folder.files != null) {
@@ -196,6 +198,7 @@ class DriveManager {
     var driveApi = await getDriveApi();
     FileList folder = await driveApi.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents and name = '$name'",
+      corpora: 'user',
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );
     if (folder.files != null) {

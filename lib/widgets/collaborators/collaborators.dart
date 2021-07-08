@@ -26,12 +26,11 @@ class _CollaboratorsState extends State<Collaborators> {
       future: getCollaborators(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return SizedBox(
-            height: MediaQuery.of(context).size.height -
-                Dimensions.scaffoldTopAndBottomBarHeight,
+          return Expanded(
             child: RefreshIndicator(
               onRefresh: _onRefresh,
               child: ListView.builder(
+                shrinkWrap: true,
                 itemCount: snapshot.data!.length,
                 itemBuilder: (_, index) {
                   final c = snapshot.data![index];
