@@ -61,9 +61,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loginService.onLoggedIn = () async {
       await initTenant();
-      isLoggedIn = true;
       _loaderController.hideLoader();
-      setState(() {});
+      setState(() => isLoggedIn = true);
     };
 
     Future.delayed(Duration.zero, () {
