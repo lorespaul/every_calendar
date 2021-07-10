@@ -7,7 +7,6 @@ import 'package:every_calendar/core/db/database_setup.dart';
 import 'package:every_calendar/core/google/config.dart';
 import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
-import 'package:every_calendar/http/google_auth_client.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
@@ -21,7 +20,6 @@ class DriveManager {
   static const String _jsonMediaType = 'application/json';
 
   final LoginService _loginService = LoginService();
-  GoogleAuthClient? _googleAuthClient;
   DriveApi? _driveApi;
   SharedPreferences? _prefs;
 
@@ -33,12 +31,8 @@ class DriveManager {
     return _prefs!;
   }
 
-  Future<DriveApi> getDriveApi() async {
-    if (_googleAuthClient == null) {
-      var headers = await _loginService.loggedUser.authHeaders;
-      _googleAuthClient = GoogleAuthClient(headers);
-    }
-    _driveApi ??= DriveApi(_googleAuthClient!);
+  DriveApi getDriveApi() {
+    _driveApi ??= DriveApi(_loginService.authClient);
     return _driveApi!;
   }
 
@@ -81,7 +75,7 @@ class DriveManager {
   }
 
   Future<Map<String, dynamic>?> downloadFile(String fileId) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     Media response = await driveApi.files.get(
       fileId,
       downloadOptions: DownloadOptions.fullMedia,
@@ -107,7 +101,7 @@ class DriveManager {
     String uuid,
     String parentId,
   ) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     File fileMetadata = File()
       ..name = '$uuid${SharedConstants.jsonExtension}'
       ..parents = [parentId]
@@ -122,7 +116,7 @@ class DriveManager {
     String uuid,
     String fileId,
   ) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     File fileMetadata = File()
       ..name = '$uuid${SharedConstants.jsonExtension}'
       ..mimeType = _jsonMediaType;
@@ -136,13 +130,13 @@ class DriveManager {
   }
 
   Future<File> trashFile(String fileId) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     File fileMetadata = File()..trashed = true;
     return await driveApi.files.update(fileMetadata, fileId);
   }
 
   Future<void> grantPermission(String email) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     File folder = await getRemoteTenantFolder(DatabaseSetup.getContext());
     var request = Permission()
       ..type = 'user'
@@ -152,7 +146,7 @@ class DriveManager {
   }
 
   Future<void> denyPermission(String email) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     File folder = await getRemoteTenantFolder(DatabaseSetup.getContext());
     var response = await driveApi.permissions.list(
       folder.id!,
@@ -167,7 +161,7 @@ class DriveManager {
   }
 
   Future<bool> hasPermission(String email) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     File folder = await getRemoteTenantFolder(DatabaseSetup.getContext());
     var response = await driveApi.permissions.list(folder.id!);
     return response.permissions!.firstWhereOrNull(
@@ -197,7 +191,7 @@ class DriveManager {
     String name, {
     String parentId = '',
   }) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     FileList folder = await driveApi.files.list(
       q: "mimeType = '$_mimeTypeFolder' and name = '$name' and trashed = false",
       corpora: 'user',
@@ -218,10 +212,19 @@ class DriveManager {
     return result;
   }
 
-  Future<List<File>> getRemoteFilesInFolder(String parentId) async {
-    var driveApi = await getDriveApi();
+  Future<List<File>> getRemoteFilesInFolder(
+    String parentId, {
+    DateTime? fromModifiedDate,
+  }) async {
+    var driveApi = getDriveApi();
+    var q = "mimeType != '$_mimeTypeFolder' and '$parentId' in parents";
+    if (fromModifiedDate != null) {
+      var dateFormatted = fromModifiedDate.toUtc().toIso8601String();
+      // DateFormat("yyyy-MM-ddThh:mm:ss").format(fromModifiedDate);
+      q += " and modifiedTime > '$dateFormatted'";
+    }
     FileList folder = await driveApi.files.list(
-      q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents",
+      q: q,
       corpora: 'user',
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );
@@ -232,7 +235,7 @@ class DriveManager {
   }
 
   Future<List<File>> getRemoteFileInFolder(String name, String parentId) async {
-    var driveApi = await getDriveApi();
+    var driveApi = getDriveApi();
     FileList folder = await driveApi.files.list(
       q: "mimeType != '$_mimeTypeFolder' and '$parentId' in parents and name = '$name'",
       corpora: 'user',

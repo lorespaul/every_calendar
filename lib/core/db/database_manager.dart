@@ -14,9 +14,47 @@ class DatabaseManager {
   static String Function()? getOwner;
   Function(AbstractEntity, String)? onChange;
 
-  Future<List<Map<String, dynamic>>?> getAll(String table) async {
+  Future<List<Map<String, dynamic>>?> getAll(
+    String table, {
+    DateTime? fromModifiedDate,
+  }) async {
     var db = await DatabaseSetup.getDatabase();
-    return await db.query(table, where: 'deletedAt IS NULL');
+    var where = 'deletedAt IS NULL';
+    List<int>? args;
+    if (fromModifiedDate != null) {
+      where += ' AND modifiedAt > ?';
+      args = [fromModifiedDate.millisecondsSinceEpoch];
+    }
+    return await db.query(
+      table,
+      where: where,
+      whereArgs: args,
+      orderBy: 'modifiedAt DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>?> getAllPaginated(
+      String table, int limit, int offset) async {
+    var db = await DatabaseSetup.getDatabase();
+    return await db.query(
+      table,
+      where: 'deletedAt IS NULL',
+      limit: limit,
+      offset: offset,
+      orderBy: 'modifiedAt DESC',
+    );
+  }
+
+  Future<int> count(String table) async {
+    var db = await DatabaseSetup.getDatabase();
+    var result = await db.rawQuery(
+      '''
+      SELECT COUNT(uuid) as c
+      FROM $table 
+      WHERE deletedAt IS NULL
+      ''',
+    );
+    return result[0]['c'] as int;
   }
 
   Future<Map<String, dynamic>?> getByUuid(String table, String uuid) async {
@@ -183,18 +221,26 @@ class DatabaseManager {
   }
 
   Future<List<Map<String, dynamic>>?> getAllNotInId(
-      String table, List<int> notIn) async {
+    String table,
+    List<int> notIn, {
+    DateTime? fromModifiedDate,
+  }) async {
     var db = await DatabaseSetup.getDatabase();
     if (notIn.isEmpty) {
-      return await getAll(table);
+      return await getAll(table, fromModifiedDate: fromModifiedDate);
     }
     String questionMarks = List.generate(
       notIn.length,
       (index) => '?',
     ).join(', ');
+    var where = 'id NOT IN ($questionMarks)';
+    if (fromModifiedDate != null) {
+      where += ' AND modifiedAt > ?';
+      notIn.add(fromModifiedDate.millisecondsSinceEpoch);
+    }
     return await db.query(
       table,
-      where: 'id NOT IN ($questionMarks)',
+      where: where,
       whereArgs: notIn,
     );
   }

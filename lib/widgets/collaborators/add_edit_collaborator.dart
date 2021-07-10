@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:email_validator/email_validator.dart';
 import 'package:every_calendar/core/db/base_repository.dart';
+import 'package:every_calendar/core/google/people_service.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/controllers/loader_controller.dart';
@@ -29,6 +30,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
   final _formKey = GlobalKey<FormState>();
   final LoaderController _loaderController = LoaderController();
   final LoginService _loginService = LoginService();
+  final PeopleService _peopleService = PeopleService();
   final DriveManager _driveManager = DriveManager();
   final _textFieldStyle = const TextStyle(
     // fontSize: 30,
@@ -56,7 +58,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
       },
       child: ScaffoldWrapper(
         title: widget.title,
-        builder: () {
+        builder: (ctx) {
           return Form(
             key: _formKey,
             child: Container(
@@ -100,9 +102,13 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                         // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
                       ),
                       style: _textFieldStyle,
+                      keyboardType: TextInputType.emailAddress,
                       initialValue: collaborator?.email,
-                      onChanged: (text) {
+                      onChanged: (text) async {
                         collaborator!.email = text;
+                        if (text.length > 3) {
+                          await _peopleService.searchPeople(text);
+                        }
                       },
                       validator: (text) {
                         if (text == null ||

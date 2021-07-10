@@ -1,4 +1,5 @@
 import 'package:every_calendar/core/google/login_service.dart';
+import 'package:every_calendar/widgets/dev_generator.dart';
 import 'package:every_calendar/widgets/tenants/tenants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -61,6 +62,16 @@ class NavDrawer extends StatelessWidget {
           //   title: const Text('Settings'),
           //   onTap: () => {Navigator.of(context).pop()},
           // ),
+          ListTile(
+            leading: const Icon(Icons.games_outlined),
+            title: const Text('Dev Generator'),
+            onTap: () {
+              Navigator.of(context).pop();
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return DevGenerator();
+              }));
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Tenant'),

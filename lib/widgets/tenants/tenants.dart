@@ -36,7 +36,7 @@ class _TenantsState extends State<Tenants> {
   Widget build(BuildContext context) {
     return ScaffoldWrapper(
       title: widget.title,
-      builder: () {
+      builder: (ctx) {
         return FutureBuilder<Config>(
           future: _getConfig(),
           builder: (context, snapshot) {

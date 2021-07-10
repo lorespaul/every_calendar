@@ -1,3 +1,4 @@
+import 'package:every_calendar/http/google_auth_client.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:googleapis/calendar/v3.dart';
 import 'dart:developer' as developer;
@@ -5,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io';
 
 import 'package:googleapis/drive/v2.dart';
+import 'package:googleapis/people/v1.dart';
 
 class LoginService {
   static const String webClientId =
@@ -16,9 +18,11 @@ class LoginService {
 
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
+  GoogleAuthClient? _googleAuthClient;
   Function()? onLoggedIn;
 
   GoogleSignInAccount get loggedUser => _currentUser!;
+  GoogleAuthClient get authClient => _googleAuthClient!;
 
   factory LoginService() {
     return _instance;
@@ -26,8 +30,12 @@ class LoginService {
 
   LoginService._internal() {
     _googleSignIn ??= _initGoogleSignIn();
-    _googleSignIn!.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+    _googleSignIn!.onCurrentUserChanged
+        .listen((GoogleSignInAccount? account) async {
       _currentUser = account;
+      if (account != null) {
+        await _initAuthClient(account);
+      }
       onLoggedIn?.call();
     });
   }
@@ -45,13 +53,26 @@ class LoginService {
       scopes: <String>[
         CalendarApi.calendarScope,
         DriveApi.driveScope,
+        PeopleServiceApi.contactsOtherReadonlyScope,
+        PeopleServiceApi.userinfoEmailScope,
+        PeopleServiceApi.userinfoProfileScope,
       ],
       clientId: clientId,
     );
   }
 
+  Future<void> _initAuthClient(GoogleSignInAccount account) async {
+    var headers = await account.authHeaders;
+    _googleAuthClient = GoogleAuthClient(headers);
+  }
+
   Future<GoogleSignInAccount?> silentlyLogin() async {
-    return await _googleSignIn!.signInSilently();
+    var account = await _googleSignIn!.signInSilently();
+    _currentUser = account;
+    if (account != null) {
+      await _initAuthClient(account);
+    }
+    return account;
   }
 
   Future<GoogleSignInAccount?> login() async {

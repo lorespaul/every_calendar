@@ -6,6 +6,7 @@ import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import 'add_edit_collaborator.dart';
 
@@ -22,93 +23,112 @@ class _CollaboratorsState extends State<Collaborators> {
   final DriveManager _driveManager = DriveManager();
   final LoaderController _loaderController = LoaderController();
   final _collaboratorsRepository = BaseRepository<Collaborator>();
+  final PagingController<int, Collaborator> _pagingController =
+      PagingController(
+    firstPageKey: 0,
+  );
+
+  @override
+  void initState() {
+    _pagingController.addPageRequestListener((pageKey) {
+      _fetchCollaborators(pageKey);
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Collaborator>>(
-      future: getCollaborators(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return Expanded(
-            child: RefreshIndicator(
-              onRefresh: _onRefresh,
-              backgroundColor: Colors.green,
-              color: Colors.white,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(5.0),
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                itemCount: snapshot.data!.length,
-                itemBuilder: (_, index) {
-                  final c = snapshot.data![index];
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(left: 10),
-                            child: Text(c.name),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 10),
-                            child: Text(c.email),
-                          ),
-                          const Spacer(),
-                          Container(
-                            margin: const EdgeInsets.only(left: 1),
-                            child: IconButton(
-                              onPressed: () async {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (context) {
-                                  return AddEditCollaborator(
-                                    title: 'Edit Collaborator',
-                                    collaborator: c,
-                                  );
-                                })).then((value) => setState(() {}));
-                              },
-                              icon: const Icon(
-                                Icons.edit,
-                                color: Colors.black45,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 1),
-                            child: IconButton(
-                              onPressed: () async => await showDeleteDialog(c),
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.black45,
-                              ),
-                            ),
-                          ),
-                        ],
+    return Expanded(
+      child: RefreshIndicator(
+        onRefresh: _onRefresh,
+        backgroundColor: Colors.green,
+        color: Colors.white,
+        child: PagedListView<int, Collaborator>(
+          padding: const EdgeInsets.all(5.0),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          pagingController: _pagingController,
+          builderDelegate: PagedChildBuilderDelegate<Collaborator>(
+            itemBuilder: (_, c, index) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 30),
+                        margin: const EdgeInsets.only(left: 10),
+                        child: Text('${index + 1}'),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return const Text('Error');
-        }
-        return const CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-        );
-      },
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 200),
+                        margin: const EdgeInsets.only(left: 10),
+                        child: Text(c.email),
+                      ),
+                      const Spacer(),
+                      Container(
+                        margin: const EdgeInsets.only(left: 1),
+                        child: IconButton(
+                          onPressed: () async {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return AddEditCollaborator(
+                                title: 'Edit Collaborator',
+                                collaborator: c,
+                              );
+                            })).then((value) => setState(() {}));
+                          },
+                          icon: const Icon(
+                            Icons.edit,
+                            color: Colors.black45,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(left: 1),
+                        child: IconButton(
+                          onPressed: () async => await showDeleteDialog(c),
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.black45,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
-  Future<List<Collaborator>> getCollaborators() {
-    return _collaboratorsRepository.getAll(Collaborator());
+  Future<void> _fetchCollaborators(int offset) async {
+    return await Future.delayed(const Duration(milliseconds: 500), () async {
+      try {
+        var limit = 10;
+        var pagination = await _collaboratorsRepository.getAllPaginated(
+          Collaborator(),
+          limit,
+          offset,
+        );
+        if (!pagination.hasNext) {
+          _pagingController.appendLastPage(pagination.result);
+        } else {
+          _pagingController.appendPage(pagination.result, offset + limit);
+        }
+      } catch (e) {
+        _pagingController.error = e;
+      }
+    });
   }
 
-  Future<void> _onRefresh() async {
+  Future _onRefresh() async {
     await widget.onSync(AllConstants.currentContext, Collaborator());
-    setState(() {});
+    _pagingController.refresh();
   }
 
   Future<void> showDeleteDialog(Collaborator collaborator) async {

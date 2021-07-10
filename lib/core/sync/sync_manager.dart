@@ -8,31 +8,41 @@ import 'package:every_calendar/core/shared/shared_constants.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'dart:developer' as developer;
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class SyncManager {
+  static final SyncManager _instance = SyncManager._internal();
+  SyncManager._internal();
+
   final DatabaseManager _databaseManager = DatabaseManager();
   final DriveManager _driveManager = DriveManager();
   final LoginService _loginService = LoginService();
   String? tenantFolder;
   List<AbstractEntity>? collections;
 
-  SyncManager() {
-    _databaseManager.onChange = synchronizeOne;
+  factory SyncManager() {
+    _instance._databaseManager.onChange ??= _instance.synchronizeOne;
+    return _instance;
   }
 
   Future<void> synchronize() async {
     try {
+      var nextLastRefresh = DateTime.now();
       File remoteTenantFolder =
           await _driveManager.getRemoteTenantFolder(tenantFolder!);
 
       for (var collection in collections!) {
         var collectionName = collection.getTableName();
+        var lastRefresh = await _getLastResfresh(collection);
         var remoteFolder = await _driveManager.getOrCreateDriveFolder(
           collectionName,
           parentId: remoteTenantFolder.id!,
         );
 
-        var remoteFiles =
-            await _driveManager.getRemoteFilesInFolder(remoteFolder.id!);
+        var remoteFiles = await _driveManager.getRemoteFilesInFolder(
+          remoteFolder.id!,
+          fromModifiedDate: lastRefresh,
+        );
         List<int> synchronizedIds = await _syncRemoteToLocal(
           remoteFiles,
           collection,
@@ -41,10 +51,12 @@ class SyncManager {
         var localData = (await _databaseManager.getAllNotInId(
               collectionName,
               synchronizedIds,
+              fromModifiedDate: lastRefresh,
             )) ??
             [];
 
         await _syncLocalToRemote(remoteFolder.id!, localData, collection);
+        await _setLastResfresh(collection, nextLastRefresh);
       }
     } catch (e) {
       developer.log(e.toString());
@@ -62,7 +74,9 @@ class SyncManager {
     );
 
     var remoteFiles = await _driveManager.getRemoteFileInFolder(
-        '$uuid${SharedConstants.jsonExtension}', remoteFolder.id!);
+      '$uuid${SharedConstants.jsonExtension}',
+      remoteFolder.id!,
+    );
     List<int> synchronizedIds = await _syncRemoteToLocal(
       remoteFiles,
       collection,
@@ -189,5 +203,26 @@ class SyncManager {
       return collection.fromMap(entity);
     }
     return null;
+  }
+
+  Future<DateTime?> _getLastResfresh(AbstractEntity collection) async {
+    var lastRefreshKey = _getRefreshKey(collection.getTableName());
+    var prefs = await SharedPreferences.getInstance();
+    var timestamp = prefs.getInt(lastRefreshKey);
+    if (timestamp != null) {
+      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    }
+    return null;
+  }
+
+  Future<void> _setLastResfresh(
+      AbstractEntity collection, DateTime refreshDate) async {
+    var lastRefreshKey = _getRefreshKey(collection.getTableName());
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(lastRefreshKey, refreshDate.millisecondsSinceEpoch);
+  }
+
+  String _getRefreshKey(String collection) {
+    return '${_loginService.loggedUser.id}-$collection-$tenantFolder';
   }
 }

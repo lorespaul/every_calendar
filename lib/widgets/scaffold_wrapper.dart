@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-typedef ScaffoldContentBuilder = Widget Function();
+typedef ScaffoldContentBuilder = Widget Function(BuildContext);
 
 class ScaffoldWrapper extends StatelessWidget {
   const ScaffoldWrapper({
@@ -22,7 +22,7 @@ class ScaffoldWrapper extends StatelessWidget {
         title: Text(title),
       ),
       body: Center(
-        child: builder(),
+        child: builder(context),
       ),
       floatingActionButton: actionButton,
     );
