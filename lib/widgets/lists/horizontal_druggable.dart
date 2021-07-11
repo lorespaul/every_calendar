@@ -5,10 +5,12 @@ class HorizontalDruggable extends StatefulWidget {
     Key? key,
     required this.underChild,
     required this.overChild,
+    this.maxSwipe = 100,
   }) : super(key: key);
 
   final Widget underChild;
   final Widget overChild;
+  final double maxSwipe;
 
   @override
   State<StatefulWidget> createState() => _HorizontalDruggableState();
@@ -16,13 +18,11 @@ class HorizontalDruggable extends StatefulWidget {
 
 class _HorizontalDruggableState extends State<HorizontalDruggable>
     with SingleTickerProviderStateMixin {
-  static const double _maxSwipe = -70;
-  static const double _maxSwipeHalf = _maxSwipe / 2;
-
   double _drugValue = 0;
 
   late AnimationController _controller;
-  late Animation<double> _animation;
+  late double _maxSwipe;
+  late double _maxSwipeHalf;
 
   @override
   void initState() {
@@ -30,6 +30,8 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
     _controller = AnimationController(
       vsync: this,
     );
+    _maxSwipe = -widget.maxSwipe.abs();
+    _maxSwipeHalf = _maxSwipe / 2;
   }
 
   @override
@@ -54,10 +56,10 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
             onHorizontalDragEnd: (details) {
               if (_drugValue < _maxSwipeHalf) {
                 // _drugValue = _maxSwipe;
-                _animate(_drugValue, _maxSwipe);
+                _animate(_maxSwipe);
               } else {
                 // _drugValue = 0;
-                _animate(_drugValue, 0);
+                _animate(0);
               }
               setState(() {});
             },
@@ -68,18 +70,21 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
     );
   }
 
-  void _animate(double begin, double end) {
-    var duration = (begin - end).abs().ceil();
+  void _animate(double end) {
+    var duration = (_drugValue - end).abs().ceil();
     if (duration < 70) {
       duration = 70;
     }
     _controller.duration = Duration(milliseconds: duration);
-    _animation = Tween<double>(begin: begin, end: end).animate(_controller)
-      ..addListener(
-        () => setState(() {
-          _drugValue = _animation.value;
-        }),
-      );
+    var animation = Tween<double>(
+      begin: _drugValue,
+      end: end,
+    ).animate(_controller);
+    animation.addListener(
+      () => setState(() {
+        _drugValue = animation.value;
+      }),
+    );
     _controller.reset();
     _controller.forward();
   }

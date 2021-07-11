@@ -1,6 +1,7 @@
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/collaborator.dart';
+import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:every_calendar/widgets/collaborators/add_edit_collaborator.dart';
 import 'package:every_calendar/widgets/lists/abstract_list_card_delegate.dart';
 import 'package:every_calendar/widgets/lists/horizontal_druggable.dart';
@@ -21,6 +22,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
     Future Function() onDelete,
   ) {
     return HorizontalDruggable(
+      maxSwipe: 70,
       underChild: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -39,7 +41,12 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
       ),
       overChild: Card(
         clipBehavior: Clip.antiAlias,
-        margin: const EdgeInsets.all(4),
+        margin: EdgeInsets.only(
+          top: index == 0 ? 4 : 0,
+          right: 4,
+          bottom: 4,
+          left: 4,
+        ),
         child: InkWell(
           onTap: () async {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -54,16 +61,54 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
             child: Row(
               children: [
                 Container(
-                  constraints: const BoxConstraints(maxWidth: 30),
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    color: Colors.black26,
+                  ),
                   margin: const EdgeInsets.only(left: 10),
-                  child: Text('${index + 1}'),
+                  alignment: Alignment.center,
+                  child: Text(
+                    entity.name[0].toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 Container(
+                  margin: const EdgeInsets.only(left: 25),
                   constraints: const BoxConstraints(maxWidth: 200),
-                  margin: const EdgeInsets.only(left: 10),
-                  child: Text(entity.email),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entity.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 5),
+                        child: Text(
+                          entity.email,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Spacer(),
+                Container(
+                  margin: const EdgeInsets.only(right: 20),
+                  child: Text(
+                    DateTimeUtils.formatToShort(entity.modifiedAt),
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                )
               ],
             ),
           ),
