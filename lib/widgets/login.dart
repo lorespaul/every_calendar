@@ -16,7 +16,7 @@ class Login extends StatelessWidget {
   Widget build(BuildContext context) {
     return ScaffoldWrapper(
       title: title,
-      builder: () {
+      builder: (ctx) {
         return ElevatedButton(
           child: const Text('SIGN IN'),
           onPressed: onLogin,

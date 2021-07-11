@@ -1,23 +1,19 @@
-import 'dart:io';
-
 import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/database_setup.dart';
+import 'package:every_calendar/core/shared/shared_constants.dart';
 import 'package:every_calendar/core/sync/sync_manager.dart';
-import 'package:every_calendar/services/drive_service.dart';
-import 'package:every_calendar/services/filesystem_service.dart';
-import 'package:every_calendar/services/loader_service.dart';
-import 'package:every_calendar/services/login_service.dart';
+import 'package:every_calendar/core/google/drive_manager.dart';
+import 'package:every_calendar/controllers/loader_controller.dart';
+import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/widgets/login.dart';
 import 'package:every_calendar/widgets/main_tabs.dart';
-import 'package:every_calendar/widgets/menu/tenant_manger.dart';
+import 'package:every_calendar/widgets/tenants/tenants.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
 
-import 'constants/prefs_keys.dart';
 import 'core/db/abstract_entity.dart';
 import 'model/collaborator.dart';
-import 'model/config.dart';
 import 'model/customer.dart';
 
 void main() async {
@@ -53,10 +49,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  LoginService? _loginService;
-  final DriveService _driveService = DriveService();
-  final FilesystemService _filesystemService = FilesystemService();
-  final LoaderService _loaderService = LoaderService();
+  final LoginService _loginService = LoginService();
+  final DriveManager _driveManager = DriveManager();
+  final LoaderController _loaderController = LoaderController();
   final SyncManager _syncManager = SyncManager();
 
   bool isLoggedIn = false;
@@ -64,19 +59,19 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loginService = LoginService(onLoggedIn: () {
-      initTenant();
-      isLoggedIn = true;
-      setState(() {});
-    });
+    _loginService.onLoggedIn = () async {
+      await initTenant();
+      _loaderController.hideLoader();
+      setState(() => isLoggedIn = true);
+    };
 
     Future.delayed(Duration.zero, () {
-      _loaderService.showLoader(context);
-      _loginService!.silentlyLogin().then((value) {
-        // if (value != null) {
-        //   setState(() => isLoggedIn = true);
-        // }
-        _loaderService.hideLoader();
+      _loaderController.showLoader(context);
+      _loginService.silentlyLogin().then((value) {
+        if (value != null) {
+          setState(() => isLoggedIn = true);
+        }
+        _loaderController.hideLoader();
       });
     });
   }
@@ -87,10 +82,10 @@ class _HomePageState extends State<HomePage> {
       return MainTabs(
         title: widget.title,
         onLogout: () {
-          _loaderService.showLoader(context);
-          _loginService!.logout().then((value) {
+          _loaderController.showLoader(context);
+          _loginService.logout().then((value) {
             setState(() => isLoggedIn = false);
-            _loaderService.hideLoader();
+            _loaderController.hideLoader();
           });
         },
         onSync: setupTenantAndSync,
@@ -98,11 +93,7 @@ class _HomePageState extends State<HomePage> {
     }
     return Login(
       title: widget.title,
-      onLogin: () => _loginService!.login().then((value) {
-        if (value != null) {
-          setState(() => isLoggedIn = true);
-        }
-      }),
+      onLogin: () => _loginService.login(),
     );
   }
 
@@ -111,7 +102,7 @@ class _HomePageState extends State<HomePage> {
     AbstractEntity? entity,
   ) async {
     if (context != AllConstants.currentContext) {
-      await DatabaseSetup.setup(context, () => _loginService!.loggedUser.email);
+      await DatabaseSetup.setup(context, () => _loginService.loggedUser.email);
     } else {
       context = DatabaseSetup.getContext();
     }
@@ -121,45 +112,45 @@ class _HomePageState extends State<HomePage> {
             Customer(),
           ]
         : [entity];
-    var driveApi = await _driveService.getDriveApi();
     _syncManager
       ..tenantFolder = context
-      ..collections = collections
-      ..driveApi = driveApi
-      ..loggedUser = _loginService!.loggedUser;
+      ..collections = collections;
     return await _syncManager.synchronize();
   }
 
   Future<void> initTenant() async {
-    File configFile = await _filesystemService.getTenantFile();
-    await _driveService.syncTenants(configFile);
-    var fileValue = await _filesystemService.getTenantFileJson();
-    var config = configFromJson(fileValue);
+    var config = await _driveManager.getConfig();
     var prefs = await SharedPreferences.getInstance();
-    var tenantId = prefs.getInt(PrefsKeys.tenant);
+    var tenantId = prefs.getInt(SharedConstants.tenant);
     if (tenantId != null) {
-      var selectedTenant = config.tenants.firstWhereOrNull(
+      var selectedTenant = config!.tenants.firstWhereOrNull(
         (e) => e.id == tenantId,
       );
       await setupTenantAndSync(selectedTenant!.context, null);
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return TenantManager(
-              title: widget.title,
-              onSync: (c) {
-                setupTenantAndSync(c, null);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (c) => widget),
-                );
-              },
-            );
-          },
-        ),
-      );
+      chooseTenant();
     }
+  }
+
+  chooseTenant() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return Tenants(
+            title: widget.title,
+            onSync: (c) async {
+              setupTenantAndSync(c, null);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (c) {
+                  return HomePage(title: widget.title);
+                }),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }

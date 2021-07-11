@@ -16,10 +16,10 @@ class DatabaseSetup {
 
   static Future<void> setup(String tenant, String Function() getOwner) async {
     DatabaseManager.getOwner = getOwner;
-    var dbName = '$tenant.db';
+    var owner = getOwner();
     _context = tenant;
     _database = openDatabase(
-      join(await getDatabasesPath(), dbName),
+      join(await getDatabasesPath(), '$owner-$tenant.db'),
       onCreate: (db, version) async {
         await db.execute(
           '''

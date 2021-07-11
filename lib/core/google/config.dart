@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:every_calendar/model/tenant.dart';
+import 'package:every_calendar/core/google/tenant.dart';
 
 Config configFromJson(String string) => Config.fromMap(jsonDecode(string));
 String configToJson(Config config) => jsonEncode(config.toMap());

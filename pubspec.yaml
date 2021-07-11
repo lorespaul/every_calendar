@@ -42,6 +42,8 @@ dependencies:
   uuid: ^3.0.4
   email_validator: ^2.0.1
   shared_preferences: ^2.0.6
+  random_string: ^2.2.0-nullsafety
+  infinite_scroll_pagination: ^3.1.0
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,12 @@
 import 'dart:ui';
 
 import 'package:email_validator/email_validator.dart';
-import 'package:every_calendar/core/db/base_repository.dart';
+import 'package:every_calendar/core/google/people_service.dart';
 import 'package:every_calendar/model/collaborator.dart';
-import 'package:every_calendar/services/login_service.dart';
+import 'package:every_calendar/core/google/drive_manager.dart';
+import 'package:every_calendar/controllers/loader_controller.dart';
+import 'package:every_calendar/core/google/login_service.dart';
+import 'package:every_calendar/repositories/collaborators_repository.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,14 +28,17 @@ class AddEditCollaborator extends StatefulWidget {
 
 class _AddEditCollaboratorState extends State<AddEditCollaborator> {
   final _formKey = GlobalKey<FormState>();
+  final LoaderController _loaderController = LoaderController();
   final LoginService _loginService = LoginService();
+  final PeopleService _peopleService = PeopleService();
+  final DriveManager _driveManager = DriveManager();
   final _textFieldStyle = const TextStyle(
     // fontSize: 30,
     color: Colors.black,
     fontFamily: 'RobotoMono',
     fontFeatures: [FontFeature.tabularFigures()],
   );
-  final _collaboratorsRepository = BaseRepository<Collaborator>();
+  final _collaboratorsRepository = CollaboratorsRepository();
   Collaborator? collaborator;
   bool isAdd = true;
 
@@ -52,7 +58,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
       },
       child: ScaffoldWrapper(
         title: widget.title,
-        builder: () {
+        builder: (ctx) {
           return Form(
             key: _formKey,
             child: Container(
@@ -96,9 +102,13 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                         // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
                       ),
                       style: _textFieldStyle,
+                      keyboardType: TextInputType.emailAddress,
                       initialValue: collaborator?.email,
-                      onChanged: (text) {
+                      onChanged: (text) async {
                         collaborator!.email = text;
+                        if (text.length > 3) {
+                          await _peopleService.searchPeople(text);
+                        }
                       },
                       validator: (text) {
                         if (text == null ||
@@ -116,33 +126,95 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
           );
         },
         actionButton: FloatingActionButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              FocusScope.of(context).unfocus();
-              Future.delayed(const Duration(milliseconds: 100), () {
-                var now = DateTime.now();
-                if (isAdd) {
-                  collaborator!.createdAt = now;
-                  collaborator!.createdBy = _loginService.loggedUser.email;
-                }
-                collaborator!.modifiedAt = now;
-                collaborator!.modifiedBy = _loginService.loggedUser.email;
-
-                _collaboratorsRepository
-                    .insertOrUpdate(collaborator!)
-                    .then((c) {
-                  if (c != null) {
-                    developer.log('collaborator: ' + collaboratorToJson(c));
+          onPressed: () async {
+            _loaderController.showLoader(context);
+            try {
+              if (_formKey.currentState!.validate()) {
+                FocusScope.of(context).unfocus();
+                await Future.delayed(const Duration(milliseconds: 100),
+                    () async {
+                  var now = DateTime.now();
+                  if (isAdd) {
+                    collaborator!.createdAt = now;
+                    collaborator!.createdBy = _loginService.loggedUser.email;
+                    // await _driveManager.grantPermission(collaborator!.email);
                   }
-                  Navigator.of(context).pop();
+                  collaborator!.modifiedAt = now;
+                  collaborator!.modifiedBy = _loginService.loggedUser.email;
+
+                  _collaboratorsRepository
+                      .insertOrUpdate(collaborator!)
+                      .then((c) {
+                    if (c != null) {
+                      developer.log('collaborator: ' + collaboratorToJson(c));
+                    }
+                    Navigator.of(context).pop();
+                  });
                 });
-              });
+              }
+            } catch (e) {
+              showErrorDialog();
+            } finally {
+              _loaderController.hideLoader();
             }
           },
           child: isAdd ? const Icon(Icons.add) : const Icon(Icons.save_alt),
           backgroundColor: Colors.green,
         ),
       ),
+    );
+  }
+
+  Future<void> showErrorDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text('Error'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Container(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text('Can\'t share with'),
+                  ],
+                ),
+                Container(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      collaborator!.email,
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  child: const Text('CANCEL'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

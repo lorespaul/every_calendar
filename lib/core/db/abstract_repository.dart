@@ -1,10 +1,14 @@
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/database_manager.dart';
+import 'package:every_calendar/core/db/pagination.dart';
 
-class BaseRepository<T extends AbstractEntity> {
+abstract class AbstractRepository<T extends AbstractEntity> {
   final DatabaseManager _databaseManager = DatabaseManager();
 
-  Future<List<T>> getAll(T entity) async {
+  T getEntityInstance();
+
+  Future<List<T>> getAll() async {
+    var entity = getEntityInstance();
     String table = entity.getTableName();
     var result = await _databaseManager.getAll(table);
     if (result != null) {
@@ -13,7 +17,30 @@ class BaseRepository<T extends AbstractEntity> {
     return List.empty();
   }
 
-  Future<T?> getByUuid(T entity, String uuid) async {
+  Future<Pagination<T>> getAllPaginated(int limit, int offset) async {
+    var entity = getEntityInstance();
+    String table = entity.getTableName();
+    var result = await _databaseManager.getAllPaginated(table, limit, offset);
+    if (result != null) {
+      var count = await _databaseManager.count(table);
+      var deserialized = result.map((e) => entity.fromMap(e) as T).toList();
+      return Pagination(
+        result: deserialized,
+        limit: limit,
+        offset: offset,
+        count: count,
+      );
+    }
+    return Pagination(
+      result: [],
+      limit: limit,
+      offset: offset,
+      count: 0,
+    );
+  }
+
+  Future<T?> getByUuid(String uuid) async {
+    var entity = getEntityInstance();
     String table = entity.getTableName();
     var result = await _databaseManager.getByUuid(table, uuid);
     if (result != null) {

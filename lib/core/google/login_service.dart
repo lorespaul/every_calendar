@@ -1,3 +1,4 @@
+import 'package:every_calendar/http/google_auth_client.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:googleapis/calendar/v3.dart';
 import 'dart:developer' as developer;
@@ -5,31 +6,37 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io';
 
 import 'package:googleapis/drive/v2.dart';
+import 'package:googleapis/people/v1.dart';
 
 class LoginService {
-  static final LoginService _instance = LoginService._internal();
-
   static const String webClientId =
       '343383817775-sppv52k52ce4e7eq46fkcmk0edn499fr.apps.googleusercontent.com';
   static const String desktopClientId =
       '343383817775-sppv52k52ce4e7eq46fkcmk0edn499fr.apps.googleusercontent.com';
 
+  static final LoginService _instance = LoginService._internal();
+
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
-  Function()? _onLoggedIn;
+  GoogleAuthClient? _googleAuthClient;
+  Function()? onLoggedIn;
 
   GoogleSignInAccount get loggedUser => _currentUser!;
+  GoogleAuthClient get authClient => _googleAuthClient!;
 
-  factory LoginService({Function()? onLoggedIn}) {
-    _instance._onLoggedIn = onLoggedIn;
+  factory LoginService() {
     return _instance;
   }
 
   LoginService._internal() {
     _googleSignIn ??= _initGoogleSignIn();
-    _googleSignIn!.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+    _googleSignIn!.onCurrentUserChanged
+        .listen((GoogleSignInAccount? account) async {
       _currentUser = account;
-      _onLoggedIn?.call();
+      if (account != null) {
+        await _initAuthClient(account);
+      }
+      onLoggedIn?.call();
     });
   }
 
@@ -46,13 +53,26 @@ class LoginService {
       scopes: <String>[
         CalendarApi.calendarScope,
         DriveApi.driveScope,
+        PeopleServiceApi.contactsOtherReadonlyScope,
+        PeopleServiceApi.userinfoEmailScope,
+        PeopleServiceApi.userinfoProfileScope,
       ],
       clientId: clientId,
     );
   }
 
+  Future<void> _initAuthClient(GoogleSignInAccount account) async {
+    var headers = await account.authHeaders;
+    _googleAuthClient = GoogleAuthClient(headers);
+  }
+
   Future<GoogleSignInAccount?> silentlyLogin() async {
-    await _googleSignIn!.signInSilently();
+    var account = await _googleSignIn!.signInSilently();
+    _currentUser = account;
+    if (account != null) {
+      await _initAuthClient(account);
+    }
+    return account;
   }
 
   Future<GoogleSignInAccount?> login() async {
@@ -67,7 +87,10 @@ class LoginService {
   }
 
   Future<void> logout() async {
-    await _googleSignIn!.disconnect();
+    try {
+      await _googleSignIn!.disconnect();
+      // ignore: empty_catches
+    } catch (e) {}
     _currentUser = null;
   }
 
