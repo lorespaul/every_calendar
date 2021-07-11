@@ -40,40 +40,32 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
       overChild: Card(
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.all(4),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Container(
-                constraints: const BoxConstraints(maxWidth: 30),
-                margin: const EdgeInsets.only(left: 10),
-                child: Text('${index + 1}'),
-              ),
-              Container(
-                constraints: const BoxConstraints(maxWidth: 200),
-                margin: const EdgeInsets.only(left: 10),
-                child: Text(entity.email),
-              ),
-              const Spacer(),
-              Container(
-                margin: const EdgeInsets.only(left: 1),
-                child: IconButton(
-                  onPressed: () async {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return AddEditCollaborator(
-                        title: 'Edit Collaborator',
-                        collaborator: entity,
-                      );
-                    })).then((value) => setState(() {}));
-                  },
-                  icon: const Icon(
-                    Icons.edit,
-                    color: Colors.black45,
-                  ),
+        child: InkWell(
+          onTap: () async {
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return AddEditCollaborator(
+                title: 'Edit Collaborator',
+                collaborator: entity,
+              );
+            })).then((value) => setState(() {}));
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 30),
+                  margin: const EdgeInsets.only(left: 10),
+                  child: Text('${index + 1}'),
                 ),
-              ),
-            ],
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 200),
+                  margin: const EdgeInsets.only(left: 10),
+                  child: Text(entity.email),
+                ),
+                const Spacer(),
+              ],
+            ),
           ),
         ),
       ),
