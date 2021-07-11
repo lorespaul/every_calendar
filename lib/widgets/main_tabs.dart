@@ -48,6 +48,7 @@ class _MainTabsState extends State<MainTabs> {
           repository: CollaboratorsRepository(),
           onSync: onSync,
         ),
+        title: 'Collaborators',
         actionsWrapper: [
           ActionWrapper(
             () {
@@ -79,6 +80,7 @@ class _MainTabsState extends State<MainTabs> {
     int i = 0;
 
     List<WidgetWrapper> children = createTabWidgets(widget.onSync);
+    String title = children[_currentIndex].title ?? widget.title;
     List<ActionWrapper>? actionsWrapper =
         children[_currentIndex].actionsWrapper;
 
@@ -90,7 +92,7 @@ class _MainTabsState extends State<MainTabs> {
       ),
       appBar: AppBar(
         toolbarHeight: Dimensions.appBarHeight,
-        title: Text(widget.title),
+        title: Text(title),
         actions: actionsWrapper
             ?.map(
               (a) => Padding(
@@ -158,10 +160,12 @@ class _MainTabsState extends State<MainTabs> {
 
 class WidgetWrapper {
   Widget widget;
+  String? title;
   List<ActionWrapper>? actionsWrapper;
 
   WidgetWrapper(
     this.widget, {
+    this.title,
     this.actionsWrapper,
   });
 }

@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Tenants extends StatefulWidget {
   const Tenants({
     Key? key,
-    required this.title,
+    this.title = 'Tenants',
     required this.onSync,
   }) : super(key: key);
 

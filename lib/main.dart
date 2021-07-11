@@ -138,7 +138,6 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(
         builder: (context) {
           return Tenants(
-            title: widget.title,
             onSync: (c) async {
               setupTenantAndSync(c, null);
               Navigator.pushReplacement(
