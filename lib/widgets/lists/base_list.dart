@@ -53,7 +53,7 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList> {
         backgroundColor: Colors.green,
         color: Colors.white,
         child: PagedListView<int, T>(
-          padding: const EdgeInsets.all(5.0),
+          // padding: const EdgeInsets.all(5.0),
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),

@@ -3,6 +3,7 @@ import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/widgets/collaborators/add_edit_collaborator.dart';
 import 'package:every_calendar/widgets/lists/abstract_list_card_delegate.dart';
+import 'package:every_calendar/widgets/lists/horizontal_druggable.dart';
 import 'package:flutter/material.dart';
 
 class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
@@ -19,51 +20,61 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
     void Function(void Function()) setState,
     Future Function() onDelete,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Row(
-          children: [
-            Container(
-              constraints: const BoxConstraints(maxWidth: 30),
-              margin: const EdgeInsets.only(left: 10),
-              child: Text('${index + 1}'),
-            ),
-            Container(
-              constraints: const BoxConstraints(maxWidth: 200),
-              margin: const EdgeInsets.only(left: 10),
-              child: Text(entity.email),
-            ),
-            const Spacer(),
-            Container(
-              margin: const EdgeInsets.only(left: 1),
-              child: IconButton(
-                onPressed: () async {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return AddEditCollaborator(
-                      title: 'Edit Collaborator',
-                      collaborator: entity,
-                    );
-                  })).then((value) => setState(() {}));
-                },
-                icon: const Icon(
-                  Icons.edit,
-                  color: Colors.black45,
-                ),
+    return HorizontalDruggable(
+      underChild: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            margin: const EdgeInsets.all(14),
+            child: IconButton(
+              onPressed: () async =>
+                  await showDeleteDialog(context, entity, onDelete),
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.red,
               ),
             ),
-            Container(
-              margin: const EdgeInsets.only(left: 1),
-              child: IconButton(
-                onPressed: () async =>
-                    await showDeleteDialog(context, entity, onDelete),
-                icon: const Icon(
-                  Icons.delete,
-                  color: Colors.black45,
+          ),
+        ],
+      ),
+      overChild: Card(
+        clipBehavior: Clip.antiAlias,
+        margin: const EdgeInsets.all(4),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              Container(
+                constraints: const BoxConstraints(maxWidth: 30),
+                margin: const EdgeInsets.only(left: 10),
+                child: Text('${index + 1}'),
+              ),
+              Container(
+                constraints: const BoxConstraints(maxWidth: 200),
+                margin: const EdgeInsets.only(left: 10),
+                child: Text(entity.email),
+              ),
+              const Spacer(),
+              Container(
+                margin: const EdgeInsets.only(left: 1),
+                child: IconButton(
+                  onPressed: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return AddEditCollaborator(
+                        title: 'Edit Collaborator',
+                        collaborator: entity,
+                      );
+                    })).then((value) => setState(() {}));
+                  },
+                  icon: const Icon(
+                    Icons.edit,
+                    color: Colors.black45,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
