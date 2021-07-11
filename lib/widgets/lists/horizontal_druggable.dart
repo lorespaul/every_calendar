@@ -14,8 +14,7 @@ class HorizontalDruggable extends StatefulWidget {
   State<StatefulWidget> createState() => _HorizontalDruggableState();
 }
 
-class _HorizontalDruggableState extends State<HorizontalDruggable>
-    with SingleTickerProviderStateMixin {
+class _HorizontalDruggableState extends State<HorizontalDruggable> {
   static const double _maxSwipe = -70;
   static const double _maxSwipeHalf = _maxSwipe / 2;
 
