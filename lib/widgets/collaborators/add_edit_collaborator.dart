@@ -1,12 +1,12 @@
 import 'dart:ui';
 
 import 'package:email_validator/email_validator.dart';
-import 'package:every_calendar/core/db/base_repository.dart';
 import 'package:every_calendar/core/google/people_service.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/google/login_service.dart';
+import 'package:every_calendar/repositories/collaborators_repository.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +38,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
     fontFamily: 'RobotoMono',
     fontFeatures: [FontFeature.tabularFigures()],
   );
-  final _collaboratorsRepository = BaseRepository<Collaborator>();
+  final _collaboratorsRepository = CollaboratorsRepository();
   Collaborator? collaborator;
   bool isAdd = true;
 
@@ -137,7 +137,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                   if (isAdd) {
                     collaborator!.createdAt = now;
                     collaborator!.createdBy = _loginService.loggedUser.email;
-                    await _driveManager.grantPermission(collaborator!.email);
+                    // await _driveManager.grantPermission(collaborator!.email);
                   }
                   collaborator!.modifiedAt = now;
                   collaborator!.modifiedBy = _loginService.loggedUser.email;

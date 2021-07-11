@@ -9,6 +9,7 @@ import 'package:googleapis/drive/v3.dart';
 import 'dart:developer' as developer;
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:collection/collection.dart';
 
 class SyncManager {
   static final SyncManager _instance = SyncManager._internal();
@@ -55,7 +56,9 @@ class SyncManager {
             )) ??
             [];
 
-        await _syncLocalToRemote(remoteFolder.id!, localData, collection);
+        if (localData.isNotEmpty) {
+          await _syncLocalToRemote(remoteFolder.id!, localData, collection);
+        }
         await _setLastResfresh(collection, nextLastRefresh);
       }
     } catch (e) {
@@ -99,17 +102,35 @@ class SyncManager {
     List<Map<String, dynamic>> localData,
     AbstractEntity collection,
   ) async {
-    for (var ld in localData) {
+    var localEntities = localData.map((e) => collection.fromMap(e)).toList();
+    var names = localEntities
+        .map((e) => '${e.getUuid()}${SharedConstants.jsonExtension}')
+        .toList();
+    var files = await _driveManager.getRemoteFilesInFolder(
+      parentId,
+      names: names,
+    );
+    for (var localEntity in localEntities) {
       // create remote file
-      var localEntity = collection.fromMap(ld);
+      var localEntityName =
+          '${localEntity.getUuid()}${SharedConstants.jsonExtension}';
+      var found = files.firstWhereOrNull((e) => e.name == localEntityName);
       if (localEntity.getModifiedBy() == _loginService.loggedUser.email &&
           localEntity.getDeletedAt() == null) {
-        // create remote file only if is modified by me
-        await _driveManager.createFile(
-          localEntity.toMap(),
-          localEntity.getUuid(),
-          parentId,
-        );
+        if (found == null) {
+          // create remote file only if is modified by me
+          await _driveManager.createFile(
+            localEntity.toMap(),
+            localEntity.getUuid(),
+            parentId,
+          );
+        } else {
+          await _driveManager.updateFile(
+            localEntity.toMap(),
+            localEntity.getUuid(),
+            found.id!,
+          );
+        }
       } else {
         // else delete local data
         await _databaseManager.deleteByUuid(

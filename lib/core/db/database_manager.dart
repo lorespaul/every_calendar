@@ -29,7 +29,7 @@ class DatabaseManager {
       table,
       where: where,
       whereArgs: args,
-      orderBy: 'modifiedAt DESC',
+      orderBy: 'createdAt DESC',
     );
   }
 
@@ -41,7 +41,7 @@ class DatabaseManager {
       where: 'deletedAt IS NULL',
       limit: limit,
       offset: offset,
-      orderBy: 'modifiedAt DESC',
+      orderBy: 'createdAt DESC',
     );
   }
 

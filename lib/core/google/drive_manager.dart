@@ -215,16 +215,27 @@ class DriveManager {
   Future<List<File>> getRemoteFilesInFolder(
     String parentId, {
     DateTime? fromModifiedDate,
+    List<String>? names,
   }) async {
     var driveApi = getDriveApi();
-    var q = "mimeType != '$_mimeTypeFolder' and '$parentId' in parents";
+    var qBuffer = StringBuffer();
+    qBuffer.write("mimeType != '$_mimeTypeFolder' and '$parentId' in parents");
     if (fromModifiedDate != null) {
-      var dateFormatted = fromModifiedDate.toUtc().toIso8601String();
-      // DateFormat("yyyy-MM-ddThh:mm:ss").format(fromModifiedDate);
-      q += " and modifiedTime > '$dateFormatted'";
+      var dateFormatted = fromModifiedDate.toIso8601String();
+      qBuffer.write(" and modifiedTime > '$dateFormatted'");
+    }
+    if (names != null) {
+      qBuffer.write(" and (");
+      for (var i = 0; i < names.length; i++) {
+        qBuffer.write("name = '${names[i]}'");
+        if (i < names.length - 1) {
+          qBuffer.write(" or ");
+        }
+      }
+      qBuffer.write(")");
     }
     FileList folder = await driveApi.files.list(
-      q: q,
+      q: qBuffer.toString(),
       corpora: 'user',
       $fields: "files(id, name, modifiedTime, modifiedByMe, trashed)",
     );
