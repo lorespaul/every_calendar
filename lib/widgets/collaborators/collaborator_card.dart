@@ -1,36 +1,48 @@
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/collaborator.dart';
+import 'package:every_calendar/repositories/collaborators_repository.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:every_calendar/widgets/collaborators/add_edit_collaborator.dart';
-import 'package:every_calendar/widgets/lists/abstract_list_card_delegate.dart';
 import 'package:every_calendar/widgets/lists/horizontal_druggable.dart';
 import 'package:flutter/material.dart';
 
-class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
-  CollaboratorCard();
+class CollaboratorCard extends StatefulWidget {
+  const CollaboratorCard({
+    Key? key,
+    required this.entity,
+    required this.index,
+    required this.onDelete,
+    this.onDropped,
+  }) : super(key: key);
 
+  final Collaborator entity;
+  final int index;
+  final Function() onDelete;
+  final void Function(double)? onDropped;
+
+  @override
+  State<StatefulWidget> createState() => _CollaboratorCardState();
+}
+
+class _CollaboratorCardState extends State<CollaboratorCard> {
+  final CollaboratorsRepository _repository = CollaboratorsRepository();
   final LoaderController _loaderController = LoaderController();
   final DriveManager _driveManager = DriveManager();
 
   @override
-  Widget build(
-    BuildContext context,
-    Collaborator entity,
-    int index,
-    void Function(void Function()) setState,
-    Future Function() onDelete,
-  ) {
+  Widget build(BuildContext context) {
     return HorizontalDruggable(
       maxSwipe: 70,
+      onDropped: widget.onDropped,
       underChild: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
             margin: const EdgeInsets.all(14),
             child: IconButton(
-              onPressed: () async =>
-                  await showDeleteDialog(context, entity, onDelete),
+              onPressed: () async => await showDeleteDialog(
+                  context, widget.entity, widget.onDelete),
               icon: const Icon(
                 Icons.delete,
                 color: Colors.red,
@@ -42,7 +54,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
       overChild: Card(
         clipBehavior: Clip.antiAlias,
         margin: EdgeInsets.only(
-          top: index == 0 ? 4 : 0,
+          top: widget.index == 0 ? 4 : 0,
           right: 4,
           bottom: 4,
           left: 4,
@@ -52,7 +64,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
               return AddEditCollaborator(
                 title: 'Edit Collaborator',
-                collaborator: entity,
+                collaborator: widget.entity,
               );
             })).then((value) => setState(() {}));
           },
@@ -70,7 +82,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
                   margin: const EdgeInsets.only(left: 10),
                   alignment: Alignment.center,
                   child: Text(
-                    entity.name[0].toUpperCase(),
+                    widget.entity.name[0].toUpperCase(),
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
@@ -85,7 +97,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        entity.name,
+                        widget.entity.name,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -94,7 +106,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
                       Container(
                         margin: const EdgeInsets.only(top: 5),
                         child: Text(
-                          entity.email,
+                          widget.entity.email,
                           style: const TextStyle(fontSize: 13),
                         ),
                       ),
@@ -105,7 +117,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
                 Container(
                   margin: const EdgeInsets.only(right: 20),
                   child: Text(
-                    DateTimeUtils.formatToShort(entity.modifiedAt),
+                    DateTimeUtils.formatToShort(widget.entity.modifiedAt),
                     style: const TextStyle(fontSize: 11),
                   ),
                 )
@@ -120,7 +132,7 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
   Future<void> showDeleteDialog(
     BuildContext context,
     Collaborator collaborator,
-    Future Function() onDelete,
+    Function() onDelete,
   ) async {
     return showDialog<void>(
       context: context,
@@ -177,8 +189,9 @@ class CollaboratorCard extends AbstractListCardDelegate<Collaborator> {
                     Navigator.of(context).pop();
                     _loaderController.showLoader(context);
                     // await _driveManager.denyPermission(collaborator.email);
-                    await onDelete();
+                    await _repository.delete(collaborator);
                     _loaderController.hideLoader();
+                    onDelete();
                   },
                 ),
                 const Spacer(),

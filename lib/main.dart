@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
     _syncManager
       ..tenantFolder = context
       ..collections = collections;
-    return await _syncManager.synchronize();
+    return _syncManager.synchronize();
   }
 
   Future<void> initTenant() async {

@@ -6,11 +6,13 @@ class HorizontalDruggable extends StatefulWidget {
     required this.underChild,
     required this.overChild,
     this.maxSwipe = 100,
+    this.onDropped,
   }) : super(key: key);
 
   final Widget underChild;
   final Widget overChild;
   final double maxSwipe;
+  final void Function(double)? onDropped;
 
   @override
   State<StatefulWidget> createState() => _HorizontalDruggableState();
@@ -23,6 +25,7 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
   late AnimationController _controller;
   late double _maxSwipe;
   late double _maxSwipeHalf;
+  bool _animateOutCalled = false;
 
   @override
   void initState() {
@@ -42,6 +45,11 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.onDropped != null && !_animateOutCalled) {
+      _animateOutCalled = true;
+      WidgetsBinding.instance!.addPostFrameCallback((_) => _animateOut());
+    }
+
     return Stack(
       children: [
         widget.underChild,
@@ -70,10 +78,15 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
     );
   }
 
-  void _animate(double end) {
-    var duration = (_drugValue - end).abs().ceil();
-    if (duration < 70) {
-      duration = 70;
+  Future _animate(
+    double end, {
+    int? duration,
+  }) {
+    if (duration == null) {
+      duration = (_drugValue - end).abs().ceil();
+      if (duration < 70) {
+        duration = 70;
+      }
     }
     _controller.duration = Duration(milliseconds: duration);
     var animation = Tween<double>(
@@ -86,6 +99,13 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
       }),
     );
     _controller.reset();
-    _controller.forward();
+    return _controller.forward();
+  }
+
+  void _animateOut() {
+    var end = -MediaQuery.of(context).size.width;
+    _animate(end, duration: 150).then((value) {
+      widget.onDropped?.call(context.size?.height ?? 100);
+    });
   }
 }
