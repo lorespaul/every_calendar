@@ -10,6 +10,7 @@ typedef BaseListItemBuilder<T extends AbstractEntity> = Widget Function(
   BuildContext context,
   T item,
   int index,
+  int lenght,
   Function() onDelete,
 );
 
@@ -19,7 +20,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
     required this.buildItem,
     required this.repository,
     required this.onSync,
-    this.limit = 10,
+    this.limit = 100,
   }) : super(key: key);
 
   final BaseListItemBuilder<T> buildItem;
@@ -33,6 +34,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
 
 class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
   bool _hasNext = false;
+  late int _length;
   final PagingController<int, T> _pagingController =
       PagingController(firstPageKey: 0);
 
@@ -69,6 +71,7 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
                 ctx,
                 c,
                 index,
+                _length,
                 () => _onDelete(c, index),
               );
             },
@@ -79,12 +82,13 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
   }
 
   Future<void> _fetch(int offset) async {
-    return await Future.delayed(const Duration(milliseconds: 500), () async {
+    return await Future.delayed(Duration.zero, () async {
       try {
         var pagination = await widget.repository.getAllPaginated(
           widget.limit,
           offset,
         );
+        _length = pagination.count;
         _hasNext = pagination.hasNext;
         if (!pagination.hasNext) {
           _pagingController.appendLastPage(pagination.result);
