@@ -7,6 +7,6 @@ class DateTimeUtils {
   }
 
   static DateTime nowUtc() {
-    return DateTimeUtils.nowUtc();
+    return DateTime.now().toUtc();
   }
 }
