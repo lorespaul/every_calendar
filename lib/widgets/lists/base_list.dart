@@ -108,6 +108,7 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
   Future _onRefresh() {
     return widget
         .onSync(AllConstants.currentContext, Collaborator())
+        .timeout(const Duration(seconds: 3))
         .then((val) => _pagingController.refresh());
   }
 
