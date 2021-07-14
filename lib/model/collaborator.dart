@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:every_calendar/core/db/abstract_entity.dart';
+import 'package:every_calendar/utils/date_time_ultils.dart';
 
 Collaborator collaboratorFromJson(String string) =>
     Collaborator.fromMap(jsonDecode(string));
@@ -11,19 +12,20 @@ class Collaborator extends AbstractEntity {
   String uuid;
   String name;
   String email;
-  DateTime createdAt = DateTime.now();
+  DateTime createdAt = DateTimeUtils.nowUtc();
   String createdBy;
-  DateTime modifiedAt = DateTime.now();
+  DateTime modifiedAt = DateTimeUtils.nowUtc();
   String modifiedBy;
   DateTime? deletedAt;
   String? deletedBy;
 
-  Collaborator(
-      {this.uuid = '',
-      this.name = '',
-      this.email = '',
-      this.createdBy = '',
-      this.modifiedBy = ''});
+  Collaborator({
+    this.uuid = '',
+    this.name = '',
+    this.email = '',
+    this.createdBy = '',
+    this.modifiedBy = '',
+  });
 
   @override
   String getUuid() => uuid;

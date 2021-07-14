@@ -5,4 +5,8 @@ class DateTimeUtils {
   static String formatToShort(DateTime dateTime) {
     return _shortFormat.format(dateTime);
   }
+
+  static DateTime nowUtc() {
+    return DateTimeUtils.nowUtc();
+  }
 }

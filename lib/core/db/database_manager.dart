@@ -1,5 +1,6 @@
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/database_setup.dart';
+import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
@@ -124,7 +125,7 @@ class DatabaseManager {
     var db = await DatabaseSetup.getDatabase();
 
     if (!isSynchronizer) {
-      var now = DateTime.now();
+      var now = DateTimeUtils.nowUtc();
       entity.setCreatedAt(now);
       entity.setCreatedBy(DatabaseManager.getOwner!());
       entity.setModifiedAt(now);
@@ -161,7 +162,7 @@ class DatabaseManager {
     var db = await DatabaseSetup.getDatabase();
 
     if (!isSynchronizer) {
-      entity.setModifiedAt(DateTime.now());
+      entity.setModifiedAt(DateTimeUtils.nowUtc());
       entity.setModifiedBy(DatabaseManager.getOwner!());
     }
 
@@ -188,7 +189,7 @@ class DatabaseManager {
     var db = await DatabaseSetup.getDatabase();
 
     if (!isSynchronizer) {
-      entity.setDeletedAt(DateTime.now());
+      entity.setDeletedAt(DateTimeUtils.nowUtc());
       entity.setDeletedBy(DatabaseManager.getOwner!());
     }
 

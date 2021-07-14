@@ -21,12 +21,14 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
     required this.repository,
     required this.onSync,
     this.limit = 100,
+    this.scrollController,
   }) : super(key: key);
 
   final BaseListItemBuilder<T> buildItem;
   final AbstractRepository<T> repository;
-  final Function(String, AbstractEntity?) onSync;
+  final Future Function(String, AbstractEntity?) onSync;
   final int limit;
+  final ScrollController? scrollController;
 
   @override
   State<StatefulWidget> createState() => _BaseListState<T>();
@@ -65,6 +67,7 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
             parent: AlwaysScrollableScrollPhysics(),
           ),
           pagingController: _pagingController,
+          scrollController: widget.scrollController,
           builderDelegate: PagedChildBuilderDelegate<T>(
             itemBuilder: (ctx, c, index) {
               return widget.buildItem(
@@ -102,9 +105,10 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
     }
   }
 
-  Future _onRefresh() async {
-    await widget.onSync(AllConstants.currentContext, Collaborator());
-    _pagingController.refresh();
+  Future _onRefresh() {
+    return widget
+        .onSync(AllConstants.currentContext, Collaborator())
+        .then((val) => _pagingController.refresh());
   }
 
   Future _onDelete(T entity, int index) async {

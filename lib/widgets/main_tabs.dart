@@ -17,7 +17,7 @@ class MainTabs extends StatefulWidget {
 
   final String title;
   final Function() onLogout;
-  final Function(String, AbstractEntity?) onSync;
+  final Future Function(String, AbstractEntity?) onSync;
 
   @override
   State<StatefulWidget> createState() => _MainTabsState();
@@ -33,7 +33,7 @@ class _MainTabsState extends State<MainTabs> {
   }
 
   List<WidgetWrapper> createTabWidgets(
-    Function(String, AbstractEntity?) onSync,
+    Future Function(String, AbstractEntity?) onSync,
   ) {
     return [
       WidgetWrapper(

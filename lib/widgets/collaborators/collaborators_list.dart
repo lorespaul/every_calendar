@@ -14,9 +14,10 @@ class CollaboratorsList extends StatelessWidget {
     this.limit = 100,
   }) : super(key: key);
 
-  final Function(String, AbstractEntity?) onSync;
+  final Future Function(String, AbstractEntity?) onSync;
   final int limit;
   final CollaboratorsRepository _repository = CollaboratorsRepository();
+  final ScrollController _scrollController = ScrollController();
   final DriveManager _driveManager = DriveManager();
 
   @override
@@ -25,6 +26,7 @@ class CollaboratorsList extends StatelessWidget {
       onSync: onSync,
       repository: _repository,
       limit: limit,
+      scrollController: _scrollController,
       buildItem: (ctx, entity, index, length, onDelete) {
         return StackCardWrapper<Collaborator>(
           child: CollaboratorCard(

@@ -7,6 +7,7 @@ import 'package:every_calendar/core/db/database_setup.dart';
 import 'package:every_calendar/core/google/config.dart';
 import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
+import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
@@ -105,7 +106,8 @@ class DriveManager {
     File fileMetadata = File()
       ..name = '$uuid${SharedConstants.jsonExtension}'
       ..parents = [parentId]
-      ..mimeType = _jsonMediaType;
+      ..mimeType = _jsonMediaType
+      ..modifiedTime = DateTimeUtils.nowUtc();
     var bytes = utf8.encode(jsonEncode(entity));
     Media media = Media(_getStream(bytes), bytes.length);
     return await driveApi.files.create(fileMetadata, uploadMedia: media);
@@ -119,7 +121,8 @@ class DriveManager {
     var driveApi = getDriveApi();
     File fileMetadata = File()
       ..name = '$uuid${SharedConstants.jsonExtension}'
-      ..mimeType = _jsonMediaType;
+      ..mimeType = _jsonMediaType
+      ..modifiedTime = DateTimeUtils.nowUtc();
     var bytes = utf8.encode(jsonEncode(entity));
     Media media = Media(_getStream(bytes), bytes.length);
     return await driveApi.files.update(
@@ -131,7 +134,9 @@ class DriveManager {
 
   Future<File> trashFile(String fileId) async {
     var driveApi = getDriveApi();
-    File fileMetadata = File()..trashed = true;
+    File fileMetadata = File()
+      ..trashed = true
+      ..modifiedTime = DateTimeUtils.nowUtc();
     return await driveApi.files.update(fileMetadata, fileId);
   }
 
@@ -221,7 +226,7 @@ class DriveManager {
     var qBuffer = StringBuffer();
     qBuffer.write("mimeType != '$_mimeTypeFolder' and '$parentId' in parents");
     if (fromModifiedDate != null) {
-      var dateFormatted = fromModifiedDate.toIso8601String();
+      var dateFormatted = fromModifiedDate.toUtc().toIso8601String();
       qBuffer.write(" and modifiedTime > '$dateFormatted'");
     }
     if (names != null) {

@@ -20,7 +20,8 @@
             "name": "huawey",
             "request": "launch",
             "args": ["-d", "NNF6R18C12000842"],
-            "type": "dart"
+            "type": "dart",
+            "flutterMode": "profile"
         },
         {
             "name": "web",

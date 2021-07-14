@@ -5,11 +5,13 @@ import 'package:every_calendar/core/db/database_manager.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
+import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'dart:developer' as developer;
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
+import 'package:synchronized/synchronized.dart';
 
 class SyncManager {
   static final SyncManager _instance = SyncManager._internal();
@@ -21,80 +23,89 @@ class SyncManager {
   String? tenantFolder;
   List<AbstractEntity>? collections;
 
+  final Lock _lock = Lock();
+
   factory SyncManager() {
     _instance._databaseManager.onChange ??= _instance.synchronizeOne;
     return _instance;
   }
 
   Future<void> synchronize() async {
-    try {
-      var nextLastRefresh = DateTime.now();
-      File remoteTenantFolder =
-          await _driveManager.getRemoteTenantFolder(tenantFolder!);
-
-      for (var collection in collections!) {
-        var collectionName = collection.getTableName();
-        var lastRefresh = await _getLastResfresh(collection);
-        var remoteFolder = await _driveManager.getOrCreateDriveFolder(
-          collectionName,
-          parentId: remoteTenantFolder.id!,
-        );
-
-        var remoteFiles = await _driveManager.getRemoteFilesInFolder(
-          remoteFolder.id!,
-          fromModifiedDate: lastRefresh,
-        );
-        List<int> synchronizedIds = await _syncRemoteToLocal(
-          remoteFiles,
-          collection,
-        );
-
-        var localData = (await _databaseManager.getAllNotInId(
-              collectionName,
-              synchronizedIds,
-              fromModifiedDate: lastRefresh,
-            )) ??
-            [];
-
-        if (localData.isNotEmpty) {
-          await _syncLocalToRemote(remoteFolder.id!, localData, collection);
-        }
-        await _setLastResfresh(collection, nextLastRefresh);
-      }
-    } catch (e) {
-      developer.log(e.toString());
+    if (_lock.locked) {
+      return;
     }
+    await _lock.synchronized(() async {
+      try {
+        var nextLastRefresh = DateTimeUtils.nowUtc();
+        File remoteTenantFolder =
+            await _driveManager.getRemoteTenantFolder(tenantFolder!);
+
+        for (var collection in collections!) {
+          var collectionName = collection.getTableName();
+          var lastRefresh = await _getLastResfresh(collection);
+          var remoteFolder = await _driveManager.getOrCreateDriveFolder(
+            collectionName,
+            parentId: remoteTenantFolder.id!,
+          );
+
+          var remoteFiles = await _driveManager.getRemoteFilesInFolder(
+            remoteFolder.id!,
+            fromModifiedDate: lastRefresh,
+          );
+          List<int> synchronizedIds = await _syncRemoteToLocal(
+            remoteFiles,
+            collection,
+          );
+
+          var localData = (await _databaseManager.getAllNotInId(
+                collectionName,
+                synchronizedIds,
+                fromModifiedDate: lastRefresh,
+              )) ??
+              [];
+
+          if (localData.isNotEmpty) {
+            await _syncLocalToRemote(remoteFolder.id!, localData, collection);
+          }
+          await _setLastResfresh(collection, nextLastRefresh);
+        }
+      } catch (e) {
+        developer.log(e.toString());
+      }
+    });
   }
 
   Future<void> synchronizeOne(AbstractEntity collection, String uuid) async {
-    File remoteTenantFolder =
-        await _driveManager.getRemoteTenantFolder(tenantFolder!);
+    await _lock.synchronized(() async {
+      File remoteTenantFolder =
+          await _driveManager.getRemoteTenantFolder(tenantFolder!);
 
-    var collectionName = collection.getTableName();
-    var remoteFolder = await _driveManager.getOrCreateDriveFolder(
-      collectionName,
-      parentId: remoteTenantFolder.id!,
-    );
-
-    var remoteFiles = await _driveManager.getRemoteFileInFolder(
-      '$uuid${SharedConstants.jsonExtension}',
-      remoteFolder.id!,
-    );
-    List<int> synchronizedIds = await _syncRemoteToLocal(
-      remoteFiles,
-      collection,
-    );
-
-    if (synchronizedIds.isEmpty) {
-      var localData = await _databaseManager.getByUuid(
+      var collectionName = collection.getTableName();
+      var remoteFolder = await _driveManager.getOrCreateDriveFolder(
         collectionName,
-        uuid,
+        parentId: remoteTenantFolder.id!,
       );
 
-      if (localData != null) {
-        await _syncLocalToRemote(remoteFolder.id!, [localData], collection);
+      var remoteFiles = await _driveManager.getRemoteFileInFolder(
+        '$uuid${SharedConstants.jsonExtension}',
+        remoteFolder.id!,
+      );
+      List<int> synchronizedIds = await _syncRemoteToLocal(
+        remoteFiles,
+        collection,
+      );
+
+      if (synchronizedIds.isEmpty) {
+        var localData = await _databaseManager.getByUuid(
+          collectionName,
+          uuid,
+        );
+
+        if (localData != null) {
+          await _syncLocalToRemote(remoteFolder.id!, [localData], collection);
+        }
       }
-    }
+    });
   }
 
   Future<void> _syncLocalToRemote(
@@ -193,8 +204,8 @@ class SyncManager {
             rf.id!,
           );
           synchronizedIds.add(ld['id']);
-        } else if (localEntity.getModifiedAt().isBefore(rf.modifiedTime!) &&
-            !rf.modifiedByMe!) {
+        } else if (localEntity.getModifiedAt().isBefore(rf.modifiedTime!)) {
+          // && !rf.modifiedByMe!) {
           // update local data
           var remoteEntity = await _remoteFileToAbstractEntity(rf, collection);
           if (remoteEntity != null) {
