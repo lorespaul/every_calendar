@@ -1,9 +1,8 @@
 import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/widgets/dev_generator.dart';
 import 'package:every_calendar/widgets/tenants/tenants.dart';
+import 'package:every_calendar/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:google_sign_in/widgets.dart';
 
 class NavDrawer extends StatelessWidget {
   NavDrawer({
@@ -13,6 +12,7 @@ class NavDrawer extends StatelessWidget {
     required this.onSync,
   }) : super(key: key);
 
+  static const double _avatarSize = 75;
   final String title;
   final Function() onLogout;
   final Function(String) onSync;
@@ -28,8 +28,14 @@ class NavDrawer extends StatelessWidget {
             child: Column(
               children: [
                 const Spacer(),
-                GoogleUserCircleAvatar(
-                  identity: _loginService.loggedUser,
+                SizedBox(
+                  height: _avatarSize,
+                  width: _avatarSize,
+                  child: UserAvatar(
+                    identity: _loginService.loggedUser,
+                    placeholderPhotoUrl: 'assets/user_placeholder.png',
+                    fontSize: 20,
+                  ),
                 ),
                 const Spacer(),
                 Text(

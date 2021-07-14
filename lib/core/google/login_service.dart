@@ -1,4 +1,4 @@
-import 'package:every_calendar/http/google_auth_client.dart';
+import 'package:every_calendar/core/google/http/google_auth_client.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:googleapis/calendar/v3.dart';
 import 'dart:developer' as developer;
@@ -63,7 +63,7 @@ class LoginService {
 
   Future<void> _initAuthClient(GoogleSignInAccount account) async {
     var headers = await account.authHeaders;
-    _googleAuthClient = GoogleAuthClient(headers);
+    _googleAuthClient = GoogleAuthClient(this, headers);
   }
 
   Future<GoogleSignInAccount?> silentlyLogin() async {

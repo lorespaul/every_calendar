@@ -82,26 +82,24 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
   }
 
   Future<void> _fetch(int offset) async {
-    return await Future.delayed(Duration.zero, () async {
-      try {
-        var pagination = await widget.repository.getAllPaginated(
-          widget.limit,
-          offset,
+    try {
+      var pagination = await widget.repository.getAllPaginated(
+        widget.limit,
+        offset,
+      );
+      _length = pagination.count;
+      _hasNext = pagination.hasNext;
+      if (!pagination.hasNext) {
+        _pagingController.appendLastPage(pagination.result);
+      } else {
+        _pagingController.appendPage(
+          pagination.result,
+          offset + widget.limit,
         );
-        _length = pagination.count;
-        _hasNext = pagination.hasNext;
-        if (!pagination.hasNext) {
-          _pagingController.appendLastPage(pagination.result);
-        } else {
-          _pagingController.appendPage(
-            pagination.result,
-            offset + widget.limit,
-          );
-        }
-      } catch (e) {
-        _pagingController.error = e;
       }
-    });
+    } catch (e) {
+      _pagingController.error = e;
+    }
   }
 
   Future _onRefresh() async {
