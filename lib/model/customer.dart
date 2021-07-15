@@ -17,6 +17,7 @@ class Customer extends AbstractEntity {
   String modifiedBy;
   DateTime? deletedAt;
   String? deletedBy;
+  String modifiedByDevice;
 
   Customer({
     this.uuid = '',
@@ -24,6 +25,7 @@ class Customer extends AbstractEntity {
     this.email = '',
     this.createdBy = '',
     this.modifiedBy = '',
+    this.modifiedByDevice = '',
   });
 
   @override
@@ -42,7 +44,8 @@ class Customer extends AbstractEntity {
         deletedAt = json['deletedAt'] != null
             ? DateTime.fromMillisecondsSinceEpoch(json['deletedAt'])
             : null,
-        deletedBy = json['deletedBy'];
+        deletedBy = json['deletedBy'],
+        modifiedByDevice = json['modifiedByDevice'];
 
   @override
   Map<String, dynamic> toMap() => {
@@ -55,6 +58,7 @@ class Customer extends AbstractEntity {
         'modifiedBy': modifiedBy,
         'deletedAt': deletedAt?.millisecondsSinceEpoch,
         'deletedBy': deletedBy,
+        'modifiedByDevice': modifiedByDevice,
       };
 
   @override
@@ -77,15 +81,5 @@ class Customer extends AbstractEntity {
   String? getDeletedBy() => deletedBy;
 
   @override
-  void setCreatedAt(DateTime createdAt) => this.createdAt = createdAt;
-  @override
-  void setCreatedBy(String createdBy) => this.createdBy = createdBy;
-  @override
-  void setModifiedAt(DateTime modifiedAt) => this.modifiedAt = modifiedAt;
-  @override
-  void setModifiedBy(String modifiedBy) => this.modifiedBy = modifiedBy;
-  @override
-  void setDeletedAt(DateTime? deletedAt) => this.deletedAt = deletedAt;
-  @override
-  void setDeletedBy(String? deletedBy) => this.deletedBy = deletedBy;
+  String getModifiedByDevice() => modifiedByDevice;
 }

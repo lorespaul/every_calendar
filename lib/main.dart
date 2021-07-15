@@ -1,5 +1,6 @@
 import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/database_setup.dart';
+import 'package:every_calendar/core/shared/device_service.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
 import 'package:every_calendar/core/sync/sync_manager.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
@@ -53,6 +54,7 @@ class _HomePageState extends State<HomePage> {
   final DriveManager _driveManager = DriveManager();
   final LoaderController _loaderController = LoaderController();
   final SyncManager _syncManager = SyncManager();
+  final DeviceService _deviceService = DeviceService();
 
   bool isLoggedIn = false;
 
@@ -102,7 +104,11 @@ class _HomePageState extends State<HomePage> {
     AbstractEntity? entity,
   ) async {
     if (context != AllConstants.currentContext) {
-      await DatabaseSetup.setup(context, () => _loginService.loggedUser.email);
+      await DatabaseSetup.setup(
+        context,
+        () => _loginService.loggedUser.email,
+        () => _deviceService.deviceIdentifier,
+      );
     } else {
       context = DatabaseSetup.getContext();
     }

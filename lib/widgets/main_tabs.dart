@@ -1,5 +1,6 @@
 import 'package:every_calendar/constants/dimensions.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
+import 'package:every_calendar/widgets/calendar.dart';
 import 'package:every_calendar/widgets/collaborators/add_edit_collaborator.dart';
 import 'package:every_calendar/widgets/nav_drawer.dart';
 import 'package:flutter/cupertino.dart';
@@ -37,7 +38,7 @@ class _MainTabsState extends State<MainTabs> {
   ) {
     return [
       WidgetWrapper(
-        const Text("Page 1"),
+        const Calendar(),
       ),
       WidgetWrapper(
         CollaboratorsList(

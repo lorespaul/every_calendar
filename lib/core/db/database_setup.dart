@@ -14,8 +14,13 @@ class DatabaseSetup {
     return _context!;
   }
 
-  static Future<void> setup(String tenant, String Function() getOwner) async {
+  static Future<void> setup(
+    String tenant,
+    String Function() getOwner,
+    String Function() getDevice,
+  ) async {
     DatabaseManager.getOwner = getOwner;
+    DatabaseManager.getDevice = getDevice;
     var owner = getOwner();
     _context = tenant;
     _database = openDatabase(
@@ -33,7 +38,8 @@ class DatabaseSetup {
               modifiedAt INTEGER NOT NULL,
               modifiedBy TEXT NOT NULL,
               deletedAt INTEGER NULL,
-              deletedBy TEXT NULL
+              deletedBy TEXT NULL,
+              modifiedByDevice TEXT NULL
             );
           ''',
         );
@@ -57,7 +63,8 @@ class DatabaseSetup {
               modifiedAt INTEGER NOT NULL,
               modifiedBy TEXT NOT NULL,
               deletedAt INTEGER NULL,
-              deletedBy TEXT NULL
+              deletedBy TEXT NULL,
+              modifiedByDevice TEXT NULL
             );
           ''',
         );

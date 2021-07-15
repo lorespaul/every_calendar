@@ -5,18 +5,14 @@ abstract class AbstractEntity {
   void setUuid(String uuid);
 
   DateTime getCreatedAt();
-  void setCreatedAt(DateTime createdAt);
   DateTime getModifiedAt();
-  void setModifiedAt(DateTime modifiedAt);
   DateTime? getDeletedAt();
-  void setDeletedAt(DateTime? deletedAt);
 
   String getCreatedBy();
-  void setCreatedBy(String createdBy);
   String getModifiedBy();
-  void setModifiedBy(String modifiedBy);
   String? getDeletedBy();
-  void setDeletedBy(String? deletedBy);
+
+  String getModifiedByDevice();
 
   Map<String, dynamic> toMap();
   AbstractEntity fromMap(Map<String, dynamic> value);

@@ -36,7 +36,8 @@ class SyncManager {
     }
     await _lock.synchronized(() async {
       try {
-        var nextLastRefresh = DateTimeUtils.nowUtc();
+        var nextLastRefresh =
+            DateTimeUtils.nowUtc().subtract(const Duration(hours: 1));
         File remoteTenantFolder =
             await _driveManager.getRemoteTenantFolder(tenantFolder!);
 
@@ -208,7 +209,9 @@ class SyncManager {
           // && !rf.modifiedByMe!) {
           // update local data
           var remoteEntity = await _remoteFileToAbstractEntity(rf, collection);
-          if (remoteEntity != null) {
+          if (remoteEntity != null &&
+              localEntity.getModifiedByDevice() !=
+                  remoteEntity.getModifiedByDevice()) {
             await _databaseManager.update(
               collectionName,
               remoteEntity.getUuid(),
@@ -248,7 +251,9 @@ class SyncManager {
   }
 
   Future<void> _setLastResfresh(
-      AbstractEntity collection, DateTime refreshDate) async {
+    AbstractEntity collection,
+    DateTime refreshDate,
+  ) async {
     var lastRefreshKey = _getRefreshKey(collection.getTableName());
     var prefs = await SharedPreferences.getInstance();
     await prefs.setInt(lastRefreshKey, refreshDate.millisecondsSinceEpoch);

@@ -8,11 +8,22 @@ class DatabaseManager {
   static final DatabaseManager _instance = DatabaseManager._internal();
   DatabaseManager._internal();
 
+  static const String _id = 'id';
+  static const String _uuid = 'uuid';
+  static const String _createdBy = 'createdBy';
+  static const String _createdAt = 'createdAt';
+  static const String _modifiedBy = 'modifiedBy';
+  static const String _modifiedAt = 'modifiedAt';
+  static const String _deletedBy = 'deletedBy';
+  static const String _deletedAt = 'deletedAt';
+  static const String _modifiedByDevice = 'modifiedByDevice';
+
   factory DatabaseManager() {
     return _instance;
   }
 
   static String Function()? getOwner;
+  static String Function()? getDevice;
   Function(AbstractEntity, String)? onChange;
 
   Future<List<Map<String, dynamic>>?> getAll(
@@ -20,17 +31,17 @@ class DatabaseManager {
     DateTime? fromModifiedDate,
   }) async {
     var db = await DatabaseSetup.getDatabase();
-    var where = 'deletedAt IS NULL';
+    var where = '$_deletedAt IS NULL';
     List<int>? args;
     if (fromModifiedDate != null) {
-      where += ' AND modifiedAt > ?';
+      where += ' AND $_modifiedAt > ?';
       args = [fromModifiedDate.millisecondsSinceEpoch];
     }
     return await db.query(
       table,
       where: where,
       whereArgs: args,
-      orderBy: 'createdAt DESC',
+      orderBy: '$_createdAt DESC',
     );
   }
 
@@ -39,10 +50,10 @@ class DatabaseManager {
     var db = await DatabaseSetup.getDatabase();
     return await db.query(
       table,
-      where: 'deletedAt IS NULL',
+      where: '$_deletedAt IS NULL',
       limit: limit,
       offset: offset,
-      orderBy: 'createdAt DESC',
+      orderBy: '$_createdAt DESC',
     );
   }
 
@@ -50,9 +61,9 @@ class DatabaseManager {
     var db = await DatabaseSetup.getDatabase();
     var result = await db.rawQuery(
       '''
-      SELECT COUNT(uuid) as c
+      SELECT COUNT($_uuid) as c
       FROM $table 
-      WHERE deletedAt IS NULL
+      WHERE $_deletedAt IS NULL
       ''',
     );
     return result[0]['c'] as int;
@@ -63,7 +74,7 @@ class DatabaseManager {
 
     var result = await db.query(
       table,
-      where: 'uuid = ?',
+      where: '$_uuid = ?',
       whereArgs: [uuid],
     );
 
@@ -79,7 +90,7 @@ class DatabaseManager {
 
     var result = await db.query(
       table,
-      where: 'id = ?',
+      where: '$_id = ?',
       whereArgs: [id],
     );
 
@@ -124,21 +135,22 @@ class DatabaseManager {
   }) async {
     var db = await DatabaseSetup.getDatabase();
 
+    var value = entity.toMap();
     if (!isSynchronizer) {
-      var now = DateTimeUtils.nowUtc();
-      entity.setCreatedAt(now);
-      entity.setCreatedBy(DatabaseManager.getOwner!());
-      entity.setModifiedAt(now);
-      entity.setModifiedBy(DatabaseManager.getOwner!());
+      var now = DateTimeUtils.nowUtc().millisecondsSinceEpoch;
+      value[_createdAt] = now;
+      value[_createdBy] = DatabaseManager.getOwner!();
+      value[_modifiedAt] = now;
+      value[_modifiedBy] = DatabaseManager.getOwner!();
+      value[_modifiedByDevice] = DatabaseManager.getDevice!();
     }
 
-    var value = entity.toMap();
-    value['id'] = null;
+    value[_id] = null;
     if (uuid.isEmpty) {
       var uuidGenerator = const Uuid();
-      value['uuid'] = uuidGenerator.v4();
+      value[_uuid] = uuidGenerator.v4();
     } else {
-      value['uuid'] = uuid;
+      value[_uuid] = uuid;
     }
     int id = await db.insert(
       table,
@@ -148,7 +160,7 @@ class DatabaseManager {
 
     var result = await getById(table, id);
     if (result != null && !isSynchronizer) {
-      onChange?.call(entity, result['uuid']);
+      onChange?.call(entity, result[_uuid]);
     }
     return result;
   }
@@ -161,16 +173,17 @@ class DatabaseManager {
   }) async {
     var db = await DatabaseSetup.getDatabase();
 
+    var value = entity.toMap();
     if (!isSynchronizer) {
-      entity.setModifiedAt(DateTimeUtils.nowUtc());
-      entity.setModifiedBy(DatabaseManager.getOwner!());
+      value[_modifiedAt] = DateTimeUtils.nowUtc().millisecondsSinceEpoch;
+      value[_modifiedBy] = DatabaseManager.getOwner!();
+      value[_modifiedByDevice] = DatabaseManager.getDevice!();
     }
 
-    var value = entity.toMap();
     await db.update(
       table,
       value,
-      where: 'uuid = ?',
+      where: '$_uuid = ?',
       whereArgs: [uuid],
     );
 
@@ -188,16 +201,16 @@ class DatabaseManager {
   }) async {
     var db = await DatabaseSetup.getDatabase();
 
+    var value = entity.toMap();
     if (!isSynchronizer) {
-      entity.setDeletedAt(DateTimeUtils.nowUtc());
-      entity.setDeletedBy(DatabaseManager.getOwner!());
+      value[_deletedAt] = DateTimeUtils.nowUtc().millisecondsSinceEpoch;
+      value[_deletedBy] = DatabaseManager.getOwner!();
     }
 
-    var value = entity.toMap();
     await db.update(
       table,
       value,
-      where: 'uuid = ?',
+      where: '$_uuid = ?',
       whereArgs: [uuid],
     );
 
@@ -216,7 +229,7 @@ class DatabaseManager {
 
     await db.delete(
       table,
-      where: 'uuid = ?',
+      where: '$_uuid = ?',
       whereArgs: [uuid],
     );
   }
@@ -234,9 +247,9 @@ class DatabaseManager {
       notIn.length,
       (index) => '?',
     ).join(', ');
-    var where = 'id NOT IN ($questionMarks)';
+    var where = '$_id NOT IN ($questionMarks)';
     if (fromModifiedDate != null) {
-      where += ' AND modifiedAt > ?';
+      where += ' AND $_modifiedAt > ?';
       notIn.add(fromModifiedDate.millisecondsSinceEpoch);
     }
     return await db.query(
