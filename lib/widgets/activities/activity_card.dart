@@ -1,4 +1,4 @@
-import 'package:every_calendar/model/collaborator.dart';
+import 'package:every_calendar/model/activity.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,12 +8,12 @@ import 'add_edit_activity.dart';
 class ActivityCard extends StatefulWidget {
   const ActivityCard({
     Key? key,
-    required this.collaborator,
+    required this.activity,
     required this.isFirst,
     required this.isLast,
   }) : super(key: key);
 
-  final Collaborator collaborator;
+  final Activity activity;
   final bool isFirst;
   final bool isLast;
 
@@ -36,7 +36,7 @@ class _ActivityCardState extends State<ActivityCard> {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return AddEditActivity(
               title: 'Edit Activity',
-              collaborator: widget.collaborator,
+              activity: widget.activity,
             );
           })).then((value) => setState(() {}));
         },
@@ -54,7 +54,7 @@ class _ActivityCardState extends State<ActivityCard> {
                 margin: const EdgeInsets.only(left: 10),
                 alignment: Alignment.center,
                 child: Text(
-                  widget.collaborator.name[0].toUpperCase(),
+                  widget.activity.name[0].toUpperCase(),
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -69,19 +69,19 @@ class _ActivityCardState extends State<ActivityCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.collaborator.name,
+                      widget.activity.name,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.only(top: 5),
-                      child: Text(
-                        widget.collaborator.email,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ),
+                    // Container(
+                    //   margin: const EdgeInsets.only(top: 5),
+                    //   child: Text(
+                    //     widget.activity.email,
+                    //     style: const TextStyle(fontSize: 13),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -89,7 +89,7 @@ class _ActivityCardState extends State<ActivityCard> {
               Container(
                 margin: const EdgeInsets.only(right: 20),
                 child: Text(
-                  DateTimeUtils.formatToShort(widget.collaborator.modifiedAt),
+                  DateTimeUtils.formatToShort(widget.activity.modifiedAt),
                   style: const TextStyle(fontSize: 11),
                 ),
               )

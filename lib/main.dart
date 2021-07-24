@@ -6,6 +6,7 @@ import 'package:every_calendar/core/sync/sync_manager.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/google/login_service.dart';
+import 'package:every_calendar/model/customer_activity.dart';
 import 'package:every_calendar/widgets/login.dart';
 import 'package:every_calendar/widgets/main_tabs.dart';
 import 'package:every_calendar/widgets/tenants/tenants.dart';
@@ -14,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:collection/collection.dart';
 
 import 'core/db/abstract_entity.dart';
+import 'model/activity.dart';
 import 'model/collaborator.dart';
 import 'model/customer.dart';
 
@@ -116,6 +118,8 @@ class _HomePageState extends State<HomePage> {
         ? [
             Collaborator(),
             Customer(),
+            CustomerActivity(),
+            Activity(),
           ]
         : [entity];
     _syncManager

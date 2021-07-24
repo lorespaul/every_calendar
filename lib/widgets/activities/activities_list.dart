@@ -1,7 +1,7 @@
 import 'package:every_calendar/core/db/abstract_entity.dart';
-import 'package:every_calendar/model/collaborator.dart';
-import 'package:every_calendar/repositories/collaborators_repository.dart';
-import 'package:every_calendar/widgets/collaborators/collaborator_card.dart';
+import 'package:every_calendar/model/activity.dart';
+import 'package:every_calendar/repositories/activities_repository.dart';
+import 'package:every_calendar/widgets/activities/activity_card.dart';
 import 'package:every_calendar/widgets/lists/stack_card_wrapper.dart';
 import 'package:every_calendar/widgets/lists/base_list.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,20 +15,20 @@ class ActivitiesList extends StatelessWidget {
 
   final Future Function(String, AbstractEntity?) onSync;
   final int limit;
-  final CollaboratorsRepository _repository = CollaboratorsRepository();
+  final ActivitiesRepository _repository = ActivitiesRepository();
   final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
-    return BaseList<Collaborator>(
+    return BaseList<Activity>(
       onSync: onSync,
       repository: _repository,
       limit: limit,
       scrollController: _scrollController,
       buildItem: (ctx, entity, index, length, onDelete) {
-        return StackCardWrapper<Collaborator>(
-          child: CollaboratorCard(
-            collaborator: entity,
+        return StackCardWrapper<Activity>(
+          child: ActivityCard(
+            activity: entity,
             isFirst: index == 0,
             isLast: index == length - 1,
           ),

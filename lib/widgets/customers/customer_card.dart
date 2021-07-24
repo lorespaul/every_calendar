@@ -1,4 +1,4 @@
-import 'package:every_calendar/model/collaborator.dart';
+import 'package:every_calendar/model/customer.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,12 +8,12 @@ import 'add_edit_customer.dart';
 class CustomerCard extends StatefulWidget {
   const CustomerCard({
     Key? key,
-    required this.collaborator,
+    required this.customer,
     required this.isFirst,
     required this.isLast,
   }) : super(key: key);
 
-  final Collaborator collaborator;
+  final Customer customer;
   final bool isFirst;
   final bool isLast;
 
@@ -36,7 +36,7 @@ class _CustomerCardState extends State<CustomerCard> {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return AddEditCustomer(
               title: 'Edit Customer',
-              collaborator: widget.collaborator,
+              customer: widget.customer,
             );
           })).then((value) => setState(() {}));
         },
@@ -54,7 +54,7 @@ class _CustomerCardState extends State<CustomerCard> {
                 margin: const EdgeInsets.only(left: 10),
                 alignment: Alignment.center,
                 child: Text(
-                  widget.collaborator.name[0].toUpperCase(),
+                  widget.customer.name[0].toUpperCase(),
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -69,7 +69,7 @@ class _CustomerCardState extends State<CustomerCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.collaborator.name,
+                      widget.customer.name,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -78,7 +78,7 @@ class _CustomerCardState extends State<CustomerCard> {
                     Container(
                       margin: const EdgeInsets.only(top: 5),
                       child: Text(
-                        widget.collaborator.email,
+                        widget.customer.email,
                         style: const TextStyle(fontSize: 13),
                       ),
                     ),
@@ -89,7 +89,7 @@ class _CustomerCardState extends State<CustomerCard> {
               Container(
                 margin: const EdgeInsets.only(right: 20),
                 child: Text(
-                  DateTimeUtils.formatToShort(widget.collaborator.modifiedAt),
+                  DateTimeUtils.formatToShort(widget.customer.modifiedAt),
                   style: const TextStyle(fontSize: 11),
                 ),
               )

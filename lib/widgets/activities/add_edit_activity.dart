@@ -1,11 +1,9 @@
 import 'dart:ui';
 
-import 'package:email_validator/email_validator.dart';
-import 'package:every_calendar/core/google/people_service.dart';
-import 'package:every_calendar/model/collaborator.dart';
+import 'package:every_calendar/model/activity.dart';
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/google/login_service.dart';
-import 'package:every_calendar/repositories/collaborators_repository.dart';
+import 'package:every_calendar/repositories/activities_repository.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,11 +14,11 @@ class AddEditActivity extends StatefulWidget {
   const AddEditActivity({
     Key? key,
     required this.title,
-    this.collaborator,
+    this.activity,
   }) : super(key: key);
 
   final String title;
-  final Collaborator? collaborator;
+  final Activity? activity;
 
   @override
   State<StatefulWidget> createState() => _AddEditActivityState();
@@ -30,21 +28,20 @@ class _AddEditActivityState extends State<AddEditActivity> {
   final _formKey = GlobalKey<FormState>();
   final LoaderController _loaderController = LoaderController();
   final LoginService _loginService = LoginService();
-  final PeopleService _peopleService = PeopleService();
   final _textFieldStyle = const TextStyle(
     color: Colors.black,
     fontFamily: 'RobotoMono',
     fontFeatures: [FontFeature.tabularFigures()],
   );
-  final _collaboratorsRepository = CollaboratorsRepository();
-  Collaborator? collaborator;
+  final _activitiesRepository = ActivitiesRepository();
+  Activity? activity;
   bool isAdd = true;
 
   @override
   void initState() {
     super.initState();
-    isAdd = widget.collaborator == null;
-    collaborator = widget.collaborator ?? Collaborator();
+    isAdd = widget.activity == null;
+    activity = widget.activity ?? Activity();
   }
 
   @override
@@ -76,9 +73,9 @@ class _AddEditActivityState extends State<AddEditActivity> {
                         // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
                       ),
                       style: _textFieldStyle,
-                      initialValue: collaborator?.name,
+                      initialValue: activity?.name,
                       onChanged: (text) {
-                        collaborator!.name = text;
+                        activity!.name = text;
                       },
                       validator: (text) {
                         if (text == null || text.isEmpty) {
@@ -88,36 +85,36 @@ class _AddEditActivityState extends State<AddEditActivity> {
                       },
                     ),
                   ),
-                  Container(
-                    width: MediaQuery.of(context).size.width - 30,
-                    margin: const EdgeInsets.only(left: 15, right: 15, top: 15),
-                    // alignment: Alignment.bottomLeft,
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'Email *',
-                        // isCollapsed: true,
-                        // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
-                      ),
-                      style: _textFieldStyle,
-                      keyboardType: TextInputType.emailAddress,
-                      initialValue: collaborator?.email,
-                      onChanged: (text) async {
-                        collaborator!.email = text;
-                        if (text.length > 3) {
-                          await _peopleService.searchPeople(text);
-                        }
-                      },
-                      validator: (text) {
-                        if (text == null ||
-                            text.isEmpty ||
-                            !EmailValidator.validate(text)) {
-                          return 'Please enter email';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
+                  // Container(
+                  //   width: MediaQuery.of(context).size.width - 30,
+                  //   margin: const EdgeInsets.only(left: 15, right: 15, top: 15),
+                  //   // alignment: Alignment.bottomLeft,
+                  //   child: TextFormField(
+                  //     decoration: const InputDecoration(
+                  //       border: OutlineInputBorder(),
+                  //       hintText: 'Email *',
+                  //       // isCollapsed: true,
+                  //       // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                  //     ),
+                  //     style: _textFieldStyle,
+                  //     keyboardType: TextInputType.emailAddress,
+                  //     initialValue: activity?.email,
+                  //     onChanged: (text) async {
+                  //       activity!.email = text;
+                  //       if (text.length > 3) {
+                  //         await _peopleService.searchPeople(text);
+                  //       }
+                  //     },
+                  //     validator: (text) {
+                  //       if (text == null ||
+                  //           text.isEmpty ||
+                  //           !EmailValidator.validate(text)) {
+                  //         return 'Please enter email';
+                  //       }
+                  //       return null;
+                  //     },
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -133,18 +130,16 @@ class _AddEditActivityState extends State<AddEditActivity> {
                     () async {
                   var now = DateTimeUtils.nowUtc();
                   if (isAdd) {
-                    collaborator!.createdAt = now;
-                    collaborator!.createdBy = _loginService.loggedUser.email;
+                    activity!.createdAt = now;
+                    activity!.createdBy = _loginService.loggedUser.email;
                     // await _driveManager.grantPermission(collaborator!.email);
                   }
-                  collaborator!.modifiedAt = now;
-                  collaborator!.modifiedBy = _loginService.loggedUser.email;
+                  activity!.modifiedAt = now;
+                  activity!.modifiedBy = _loginService.loggedUser.email;
 
-                  _collaboratorsRepository
-                      .insertOrUpdate(collaborator!)
-                      .then((c) {
-                    if (c != null) {
-                      developer.log('collaborator: ' + collaboratorToJson(c));
+                  _activitiesRepository.insertOrUpdate(activity!).then((a) {
+                    if (a != null) {
+                      developer.log('collaborator: ' + activityToJson(a));
                     }
                     Navigator.of(context).pop();
                   });
@@ -186,15 +181,15 @@ class _AddEditActivityState extends State<AddEditActivity> {
                   ],
                 ),
                 Container(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      collaborator!.email,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                  ],
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     Text(
+                //       activity!.email,
+                //       style: const TextStyle(fontSize: 20),
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),

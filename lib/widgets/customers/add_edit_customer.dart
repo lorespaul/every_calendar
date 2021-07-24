@@ -2,10 +2,10 @@ import 'dart:ui';
 
 import 'package:email_validator/email_validator.dart';
 import 'package:every_calendar/core/google/people_service.dart';
-import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/google/login_service.dart';
-import 'package:every_calendar/repositories/collaborators_repository.dart';
+import 'package:every_calendar/model/customer.dart';
+import 'package:every_calendar/repositories/customers_repository.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,11 +16,11 @@ class AddEditCustomer extends StatefulWidget {
   const AddEditCustomer({
     Key? key,
     required this.title,
-    this.collaborator,
+    this.customer,
   }) : super(key: key);
 
   final String title;
-  final Collaborator? collaborator;
+  final Customer? customer;
 
   @override
   State<StatefulWidget> createState() => _AddEditCustomerState();
@@ -36,15 +36,15 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
     fontFamily: 'RobotoMono',
     fontFeatures: [FontFeature.tabularFigures()],
   );
-  final _collaboratorsRepository = CollaboratorsRepository();
-  Collaborator? collaborator;
+  final _customersRepository = CustomersRepository();
+  Customer? customer;
   bool isAdd = true;
 
   @override
   void initState() {
     super.initState();
-    isAdd = widget.collaborator == null;
-    collaborator = widget.collaborator ?? Collaborator();
+    isAdd = widget.customer == null;
+    customer = widget.customer ?? Customer();
   }
 
   @override
@@ -76,9 +76,9 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                         // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
                       ),
                       style: _textFieldStyle,
-                      initialValue: collaborator?.name,
+                      initialValue: customer?.name,
                       onChanged: (text) {
-                        collaborator!.name = text;
+                        customer!.name = text;
                       },
                       validator: (text) {
                         if (text == null || text.isEmpty) {
@@ -101,9 +101,9 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                       ),
                       style: _textFieldStyle,
                       keyboardType: TextInputType.emailAddress,
-                      initialValue: collaborator?.email,
+                      initialValue: customer?.email,
                       onChanged: (text) async {
-                        collaborator!.email = text;
+                        customer!.email = text;
                         if (text.length > 3) {
                           await _peopleService.searchPeople(text);
                         }
@@ -133,18 +133,16 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                     () async {
                   var now = DateTimeUtils.nowUtc();
                   if (isAdd) {
-                    collaborator!.createdAt = now;
-                    collaborator!.createdBy = _loginService.loggedUser.email;
+                    customer!.createdAt = now;
+                    customer!.createdBy = _loginService.loggedUser.email;
                     // await _driveManager.grantPermission(collaborator!.email);
                   }
-                  collaborator!.modifiedAt = now;
-                  collaborator!.modifiedBy = _loginService.loggedUser.email;
+                  customer!.modifiedAt = now;
+                  customer!.modifiedBy = _loginService.loggedUser.email;
 
-                  _collaboratorsRepository
-                      .insertOrUpdate(collaborator!)
-                      .then((c) {
+                  _customersRepository.insertOrUpdate(customer!).then((c) {
                     if (c != null) {
-                      developer.log('collaborator: ' + collaboratorToJson(c));
+                      developer.log('collaborator: ' + customerToJson(c));
                     }
                     Navigator.of(context).pop();
                   });
@@ -190,7 +188,7 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      collaborator!.email,
+                      customer!.email,
                       style: const TextStyle(fontSize: 20),
                     ),
                   ],
