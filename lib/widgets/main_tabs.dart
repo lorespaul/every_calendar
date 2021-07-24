@@ -42,6 +42,7 @@ class _MainTabsState extends State<MainTabs> {
     return [
       WidgetWrapper(
         const Calendar(),
+        title: 'Calendar',
       ),
       WidgetWrapper(
         CollaboratorsList(
