@@ -1,12 +1,15 @@
 import 'package:every_calendar/constants/dimensions.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
+import 'package:every_calendar/widgets/activities/activities_list.dart';
+import 'package:every_calendar/widgets/activities/add_edit_activity.dart';
 import 'package:every_calendar/widgets/calendar.dart';
 import 'package:every_calendar/widgets/collaborators/add_edit_collaborator.dart';
+import 'package:every_calendar/widgets/customers/add_edit_customer.dart';
+import 'package:every_calendar/widgets/collaborators/collaborators_list.dart';
+import 'package:every_calendar/widgets/customers/customers_list.dart';
 import 'package:every_calendar/widgets/nav_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'collaborators/collaborators_list.dart';
 
 class MainTabs extends StatefulWidget {
   const MainTabs({
@@ -64,10 +67,50 @@ class _MainTabsState extends State<MainTabs> {
         ],
       ),
       WidgetWrapper(
-        const Text("Page 3"),
+        CustomersList(
+          key: _page2Key,
+          onSync: onSync,
+        ),
+        title: 'Customers',
+        actionsWrapper: [
+          ActionWrapper(
+            () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const AddEditCustomer(
+                  title: 'Add Customer',
+                );
+              })).then(
+                (value) => setState(() {
+                  _page2Key = GlobalKey();
+                }),
+              );
+            },
+            const Icon(Icons.add_circle_outline),
+          ),
+        ],
       ),
       WidgetWrapper(
-        const Text("Page 4"),
+        ActivitiesList(
+          key: _page2Key,
+          onSync: onSync,
+        ),
+        title: 'Activities',
+        actionsWrapper: [
+          ActionWrapper(
+            () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return const AddEditActivity(
+                  title: 'Add Activity',
+                );
+              })).then(
+                (value) => setState(() {
+                  _page2Key = GlobalKey();
+                }),
+              );
+            },
+            const Icon(Icons.add_circle_outline),
+          ),
+        ],
       ),
     ];
   }

@@ -51,7 +51,6 @@ abstract class AbstractRepository<T extends AbstractEntity> {
 
   Future<T?> insert(T entity) async {
     String table = entity.getTableName();
-    entity.setUuid('');
     var result = await _databaseManager.insert(table, entity);
     if (result != null) {
       return entity.fromMap(result) as T;

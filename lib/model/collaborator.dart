@@ -31,8 +31,6 @@ class Collaborator extends AbstractEntity {
 
   @override
   String getUuid() => uuid;
-  @override
-  void setUuid(String uuid) => this.uuid = uuid;
 
   Collaborator.fromMap(Map<String, dynamic> json)
       : uuid = json['uuid'],

@@ -69,10 +69,62 @@ class DatabaseSetup {
           ''',
         );
 
-        return await db.execute(
+        await db.execute(
           '''
             CREATE UNIQUE INDEX idx_customers_uuid
             ON customers (uuid);
+          ''',
+        );
+
+        await db.execute(
+          '''
+            CREATE TABLE activities(
+              id INTEGER PRIMARY KEY AUTOINCREMENT, 
+              uuid TEXT NOT NULL,
+              name TEXT NOT NULL,
+              description TEXT NULL,
+              duration INTEGER NOT NULL,
+              createdAt INTEGER NOT NULL,
+              createdBy TEXT NOT NULL,
+              modifiedAt INTEGER NOT NULL,
+              modifiedBy TEXT NOT NULL,
+              deletedAt INTEGER NULL,
+              deletedBy TEXT NULL,
+              modifiedByDevice TEXT NULL
+            );
+          ''',
+        );
+
+        await db.execute(
+          '''
+            CREATE UNIQUE INDEX idx_activities_uuid
+            ON activities (uuid);
+          ''',
+        );
+
+        await db.execute(
+          '''
+            CREATE TABLE customers_activities(
+              id INTEGER PRIMARY KEY AUTOINCREMENT, 
+              uuid TEXT NOT NULL,
+              uuidCustomer TEXT NOT NULL,
+              uuidActivity TEXT NOT NULL,
+              duration INTEGER NOT NULL,
+              createdAt INTEGER NOT NULL,
+              createdBy TEXT NOT NULL,
+              modifiedAt INTEGER NOT NULL,
+              modifiedBy TEXT NOT NULL,
+              deletedAt INTEGER NULL,
+              deletedBy TEXT NULL,
+              modifiedByDevice TEXT NULL
+            );
+          ''',
+        );
+
+        return await db.execute(
+          '''
+            CREATE UNIQUE INDEX idx_customers_activities_uuid
+            ON customers_activities (uuid);
           ''',
         );
       },

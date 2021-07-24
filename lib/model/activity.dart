@@ -3,14 +3,15 @@ import 'dart:convert';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 
-Customer customerFromJson(String string) =>
-    Customer.fromMap(jsonDecode(string));
-String customerToJson(Customer customer) => jsonEncode(customer.toMap());
+Activity activityFromJson(String string) =>
+    Activity.fromMap(jsonDecode(string));
+String activityToJson(Activity activity) => jsonEncode(activity.toMap());
 
-class Customer extends AbstractEntity {
+class Activity extends AbstractEntity {
   String uuid;
   String name;
-  String email;
+  String? description;
+  int duration;
   DateTime createdAt = DateTimeUtils.nowUtc();
   String createdBy;
   DateTime modifiedAt = DateTimeUtils.nowUtc();
@@ -19,10 +20,10 @@ class Customer extends AbstractEntity {
   String? deletedBy;
   String modifiedByDevice;
 
-  Customer({
+  Activity({
     this.uuid = '',
     this.name = '',
-    this.email = '',
+    this.duration = -1,
     this.createdBy = '',
     this.modifiedBy = '',
     this.modifiedByDevice = '',
@@ -31,10 +32,11 @@ class Customer extends AbstractEntity {
   @override
   String getUuid() => uuid;
 
-  Customer.fromMap(Map<String, dynamic> json)
+  Activity.fromMap(Map<String, dynamic> json)
       : uuid = json['uuid'],
         name = json['name'],
-        email = json['email'],
+        description = json['description'],
+        duration = json['duration'],
         createdAt = DateTime.fromMillisecondsSinceEpoch(json['createdAt']),
         createdBy = json['createdBy'],
         modifiedAt = DateTime.fromMillisecondsSinceEpoch(json['modifiedAt']),
@@ -49,7 +51,8 @@ class Customer extends AbstractEntity {
   Map<String, dynamic> toMap() => {
         'uuid': uuid,
         'name': name,
-        'email': email,
+        'description': description,
+        'duration': duration,
         'createdAt': createdAt.millisecondsSinceEpoch,
         'createdBy': createdBy,
         'modifiedAt': modifiedAt.millisecondsSinceEpoch,
@@ -60,10 +63,10 @@ class Customer extends AbstractEntity {
       };
 
   @override
-  String getTableName() => 'customers';
+  String getTableName() => 'activities';
 
   @override
-  AbstractEntity fromMap(Map<String, dynamic> value) => Customer.fromMap(value);
+  AbstractEntity fromMap(Map<String, dynamic> value) => Activity.fromMap(value);
 
   @override
   DateTime getCreatedAt() => createdAt;

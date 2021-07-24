@@ -2,7 +2,6 @@ abstract class AbstractEntity {
   String getTableName();
 
   String getUuid();
-  void setUuid(String uuid);
 
   DateTime getCreatedAt();
   DateTime getModifiedAt();
