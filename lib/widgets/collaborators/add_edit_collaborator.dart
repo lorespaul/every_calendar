@@ -40,14 +40,16 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
     fontFeatures: [FontFeature.tabularFigures()],
   );
   final _collaboratorsRepository = CollaboratorsRepository();
-  Collaborator? collaborator;
+  late Collaborator collaborator;
   bool isAdd = true;
 
   @override
   void initState() {
     super.initState();
     isAdd = widget.collaborator == null;
-    collaborator = widget.collaborator ?? Collaborator();
+    collaborator = widget.collaborator != null
+        ? Collaborator.fromMap(widget.collaborator!.toMap())
+        : Collaborator();
   }
 
   @override
@@ -79,9 +81,9 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                         // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
                       ),
                       style: _textFieldStyle,
-                      initialValue: collaborator?.name,
+                      initialValue: collaborator.name,
                       onChanged: (text) {
-                        collaborator!.name = text;
+                        collaborator.name = text;
                       },
                       validator: (text) {
                         if (text == null || text.isEmpty) {
@@ -104,9 +106,9 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                       ),
                       style: _textFieldStyle,
                       keyboardType: TextInputType.emailAddress,
-                      initialValue: collaborator?.email,
+                      initialValue: collaborator.email,
                       onChanged: (text) async {
-                        collaborator!.email = text;
+                        collaborator.email = text;
                         if (text.length > 3) {
                           await _peopleService.searchPeople(text);
                         }
@@ -136,18 +138,28 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                     () async {
                   var now = DateTimeUtils.nowUtc();
                   if (isAdd) {
-                    collaborator!.createdAt = now;
-                    collaborator!.createdBy = _loginService.loggedUser.email;
+                    collaborator.createdAt = now;
+                    collaborator.createdBy = _loginService.loggedUser.email;
                     // await _driveManager.grantPermission(collaborator!.email);
                   }
-                  collaborator!.modifiedAt = now;
-                  collaborator!.modifiedBy = _loginService.loggedUser.email;
+                  collaborator.modifiedAt = now;
+                  collaborator.modifiedBy = _loginService.loggedUser.email;
 
                   _collaboratorsRepository
-                      .insertOrUpdate(collaborator!)
+                      .insertOrUpdate(collaborator)
                       .then((c) {
                     if (c != null) {
                       developer.log('collaborator: ' + collaboratorToJson(c));
+                      if (widget.collaborator != null) {
+                        widget.collaborator!.name = c.name;
+                        widget.collaborator!.email = c.email;
+                        if (isAdd) {
+                          widget.collaborator!.createdAt = c.createdAt;
+                          widget.collaborator!.createdBy = c.createdBy;
+                        }
+                        widget.collaborator!.modifiedAt = c.modifiedAt;
+                        widget.collaborator!.modifiedBy = c.modifiedBy;
+                      }
                     }
                     Navigator.of(context).pop();
                   });
@@ -193,7 +205,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      collaborator!.email,
+                      collaborator.email,
                       style: const TextStyle(fontSize: 20),
                     ),
                   ],

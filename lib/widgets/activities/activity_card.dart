@@ -45,16 +45,17 @@ class _ActivityCardState extends State<ActivityCard> {
           child: Row(
             children: [
               Container(
-                width: 40,
                 height: 40,
+                width: 80,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
+                  borderRadius: BorderRadius.circular(4),
                   color: Colors.black26,
                 ),
-                margin: const EdgeInsets.only(left: 10),
+                margin: const EdgeInsets.only(left: 0),
+                padding: const EdgeInsets.only(left: 5, right: 5),
                 alignment: Alignment.center,
                 child: Text(
-                  widget.activity.name[0].toUpperCase(),
+                  widget.activity.duration.format(),
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -62,7 +63,7 @@ class _ActivityCardState extends State<ActivityCard> {
                 ),
               ),
               Container(
-                margin: const EdgeInsets.only(left: 25),
+                margin: const EdgeInsets.only(left: 10),
                 constraints: const BoxConstraints(maxWidth: 200),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -75,19 +76,20 @@ class _ActivityCardState extends State<ActivityCard> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    // Container(
-                    //   margin: const EdgeInsets.only(top: 5),
-                    //   child: Text(
-                    //     widget.activity.email,
-                    //     style: const TextStyle(fontSize: 13),
-                    //   ),
-                    // ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 5),
+                      child: Text(
+                        widget.activity.description ?? '',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
                   ],
                 ),
               ),
               const Spacer(),
               Container(
-                margin: const EdgeInsets.only(right: 20),
+                margin: const EdgeInsets.only(right: 0),
                 child: Text(
                   DateTimeUtils.formatToShort(widget.activity.modifiedAt),
                   style: const TextStyle(fontSize: 11),

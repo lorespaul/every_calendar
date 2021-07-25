@@ -37,14 +37,16 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
     fontFeatures: [FontFeature.tabularFigures()],
   );
   final _customersRepository = CustomersRepository();
-  Customer? customer;
+  late Customer customer;
   bool isAdd = true;
 
   @override
   void initState() {
     super.initState();
     isAdd = widget.customer == null;
-    customer = widget.customer ?? Customer();
+    customer = widget.customer != null
+        ? Customer.fromMap(widget.customer!.toMap())
+        : Customer();
   }
 
   @override
@@ -76,9 +78,9 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                         // contentPadding: EdgeInsets.fromLTRB(5, 2, 5, 2),
                       ),
                       style: _textFieldStyle,
-                      initialValue: customer?.name,
+                      initialValue: customer.name,
                       onChanged: (text) {
-                        customer!.name = text;
+                        customer.name = text;
                       },
                       validator: (text) {
                         if (text == null || text.isEmpty) {
@@ -101,9 +103,9 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                       ),
                       style: _textFieldStyle,
                       keyboardType: TextInputType.emailAddress,
-                      initialValue: customer?.email,
+                      initialValue: customer.email,
                       onChanged: (text) async {
-                        customer!.email = text;
+                        customer.email = text;
                         if (text.length > 3) {
                           await _peopleService.searchPeople(text);
                         }
@@ -133,16 +135,25 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                     () async {
                   var now = DateTimeUtils.nowUtc();
                   if (isAdd) {
-                    customer!.createdAt = now;
-                    customer!.createdBy = _loginService.loggedUser.email;
-                    // await _driveManager.grantPermission(collaborator!.email);
+                    customer.createdAt = now;
+                    customer.createdBy = _loginService.loggedUser.email;
                   }
-                  customer!.modifiedAt = now;
-                  customer!.modifiedBy = _loginService.loggedUser.email;
+                  customer.modifiedAt = now;
+                  customer.modifiedBy = _loginService.loggedUser.email;
 
-                  _customersRepository.insertOrUpdate(customer!).then((c) {
+                  _customersRepository.insertOrUpdate(customer).then((c) {
                     if (c != null) {
-                      developer.log('collaborator: ' + customerToJson(c));
+                      developer.log('customer: ' + customerToJson(c));
+                      if (widget.customer != null) {
+                        widget.customer!.name = c.name;
+                        widget.customer!.email = c.email;
+                        if (isAdd) {
+                          widget.customer!.createdAt = c.createdAt;
+                          widget.customer!.createdBy = c.createdBy;
+                        }
+                        widget.customer!.modifiedAt = c.modifiedAt;
+                        widget.customer!.modifiedBy = c.modifiedBy;
+                      }
                     }
                     Navigator.of(context).pop();
                   });
@@ -188,7 +199,7 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      customer!.email,
+                      customer.email,
                       style: const TextStyle(fontSize: 20),
                     ),
                   ],

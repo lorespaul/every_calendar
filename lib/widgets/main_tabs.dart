@@ -30,6 +30,8 @@ class MainTabs extends StatefulWidget {
 class _MainTabsState extends State<MainTabs> {
   int _currentIndex = 0;
   GlobalKey _page2Key = GlobalKey();
+  GlobalKey _page3Key = GlobalKey();
+  GlobalKey _page4Key = GlobalKey();
 
   @override
   void initState() {
@@ -69,7 +71,7 @@ class _MainTabsState extends State<MainTabs> {
       ),
       WidgetWrapper(
         CustomersList(
-          key: _page2Key,
+          key: _page3Key,
           onSync: onSync,
         ),
         title: 'Customers',
@@ -82,7 +84,7 @@ class _MainTabsState extends State<MainTabs> {
                 );
               })).then(
                 (value) => setState(() {
-                  _page2Key = GlobalKey();
+                  _page3Key = GlobalKey();
                 }),
               );
             },
@@ -92,7 +94,7 @@ class _MainTabsState extends State<MainTabs> {
       ),
       WidgetWrapper(
         ActivitiesList(
-          key: _page2Key,
+          key: _page4Key,
           onSync: onSync,
         ),
         title: 'Activities',
@@ -105,7 +107,7 @@ class _MainTabsState extends State<MainTabs> {
                 );
               })).then(
                 (value) => setState(() {
-                  _page2Key = GlobalKey();
+                  _page4Key = GlobalKey();
                 }),
               );
             },
