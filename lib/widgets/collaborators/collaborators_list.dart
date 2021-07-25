@@ -3,8 +3,8 @@ import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/repositories/collaborators_repository.dart';
 import 'package:every_calendar/widgets/collaborators/collaborator_card.dart';
+import 'package:every_calendar/widgets/lists/list_with_sorting.dart';
 import 'package:every_calendar/widgets/lists/stack_card_wrapper.dart';
-import 'package:every_calendar/widgets/lists/base_list.dart';
 import 'package:flutter/cupertino.dart';
 
 class CollaboratorsList extends StatelessWidget {
@@ -17,18 +17,16 @@ class CollaboratorsList extends StatelessWidget {
   final Future Function(String, AbstractEntity?) onSync;
   final int limit;
   final CollaboratorsRepository _repository = CollaboratorsRepository();
-  final ScrollController _scrollController = ScrollController();
   final DriveManager _driveManager = DriveManager();
 
   @override
   Widget build(BuildContext context) {
-    return BaseList<Collaborator>(
+    return ListWithSorting<Collaborator>(
       onSync: onSync,
       repository: _repository,
       limit: limit,
-      scrollController: _scrollController,
-      buildItem: (ctx, entity, index, length, onDelete) {
-        return StackCardWrapper<Collaborator>(
+      buildItem: (ctx, entity, index, length, onDelete, paddingTop) {
+        Widget item = StackCardWrapper<Collaborator>(
           child: CollaboratorCard(
             collaborator: entity,
             isFirst: index == 0,
@@ -43,6 +41,13 @@ class CollaboratorsList extends StatelessWidget {
           onDeleted: onDelete,
           deleteName: entity.name,
         );
+        if (index == 0 && paddingTop != null) {
+          item = Padding(
+            padding: EdgeInsets.only(top: paddingTop),
+            child: item,
+          );
+        }
+        return item;
       },
     );
   }

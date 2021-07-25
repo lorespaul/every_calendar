@@ -56,29 +56,26 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: RefreshIndicator(
-        onRefresh: _onRefresh,
-        backgroundColor: Colors.green,
-        color: Colors.white,
-        child: PagedListView<int, T>(
-          // padding: const EdgeInsets.all(5.0),
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          pagingController: _pagingController,
-          scrollController: widget.scrollController,
-          builderDelegate: PagedChildBuilderDelegate<T>(
-            itemBuilder: (ctx, c, index) {
-              return widget.buildItem(
-                ctx,
-                c,
-                index,
-                _length,
-                () => _onDelete(c, index),
-              );
-            },
-          ),
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      backgroundColor: Colors.green,
+      color: Colors.white,
+      child: PagedListView<int, T>(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        pagingController: _pagingController,
+        scrollController: widget.scrollController,
+        builderDelegate: PagedChildBuilderDelegate<T>(
+          itemBuilder: (ctx, c, index) {
+            return widget.buildItem(
+              ctx,
+              c,
+              index,
+              _length,
+              () => _onDelete(c, index),
+            );
+          },
         ),
       ),
     );
