@@ -1,51 +1,49 @@
 import 'dart:ui';
 
 import 'package:email_validator/email_validator.dart';
-import 'package:every_calendar/core/google/people_service.dart';
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/google/login_service.dart';
-import 'package:every_calendar/model/customer.dart';
-import 'package:every_calendar/repositories/customers_repository.dart';
+import 'package:every_calendar/model/customer_activity.dart';
+import 'package:every_calendar/repositories/customers_activities_repository.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
-class AddEditCustomer extends StatefulWidget {
-  const AddEditCustomer({
+class AddEditCustomerActivity extends StatefulWidget {
+  const AddEditCustomerActivity({
     Key? key,
     required this.title,
-    this.customer,
+    this.customerActivity,
   }) : super(key: key);
 
   final String title;
-  final Customer? customer;
+  final CustomerActivity? customerActivity;
 
   @override
-  State<StatefulWidget> createState() => _AddEditCustomerState();
+  State<StatefulWidget> createState() => _AddEditCustomerActivityState();
 }
 
-class _AddEditCustomerState extends State<AddEditCustomer> {
+class _AddEditCustomerActivityState extends State<AddEditCustomerActivity> {
   final _formKey = GlobalKey<FormState>();
   final LoaderController _loaderController = LoaderController();
   final LoginService _loginService = LoginService();
-  final PeopleService _peopleService = PeopleService();
   final _textFieldStyle = const TextStyle(
     color: Colors.black,
     fontFamily: 'RobotoMono',
     fontFeatures: [FontFeature.tabularFigures()],
   );
-  final _customersRepository = CustomersRepository();
-  late Customer customer;
+  final _customersActivitiesRepository = CustomersActivitiesRepository();
+  late CustomerActivity customerActivity;
   bool isAdd = true;
 
   @override
   void initState() {
     super.initState();
-    isAdd = widget.customer == null;
-    customer = widget.customer != null
-        ? Customer.fromMap(widget.customer!.toMap())
-        : Customer();
+    isAdd = widget.customerActivity == null;
+    customerActivity = widget.customerActivity != null
+        ? CustomerActivity.fromMap(widget.customerActivity!.toMap())
+        : CustomerActivity();
   }
 
   @override
@@ -76,10 +74,10 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                       hintText: 'Name *',
                     ),
                     style: _textFieldStyle,
-                    initialValue: customer.name,
-                    onChanged: (text) {
-                      customer.name = text;
-                    },
+                    // initialValue: customerActivity.name,
+                    // onChanged: (text) {
+                    //   customer.name = text;
+                    // },
                     validator: (text) {
                       if (text == null || text.isEmpty) {
                         return 'Please enter name';
@@ -98,13 +96,13 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                     ),
                     style: _textFieldStyle,
                     keyboardType: TextInputType.emailAddress,
-                    initialValue: customer.email,
-                    onChanged: (text) async {
-                      customer.email = text;
-                      if (text.length > 3) {
-                        await _peopleService.searchPeople(text);
-                      }
-                    },
+                    // initialValue: customer.email,
+                    // onChanged: (text) async {
+                    //   customer.email = text;
+                    //   if (text.length > 3) {
+                    //     await _peopleService.searchPeople(text);
+                    //   }
+                    // },
                     validator: (text) {
                       if (text == null ||
                           text.isEmpty ||
@@ -129,24 +127,26 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                     () async {
                   var now = DateTimeUtils.nowUtc();
                   if (isAdd) {
-                    customer.createdAt = now;
-                    customer.createdBy = _loginService.loggedUser.email;
+                    customerActivity.createdAt = now;
+                    customerActivity.createdBy = _loginService.loggedUser.email;
                   }
-                  customer.modifiedAt = now;
-                  customer.modifiedBy = _loginService.loggedUser.email;
+                  customerActivity.modifiedAt = now;
+                  customerActivity.modifiedBy = _loginService.loggedUser.email;
 
-                  _customersRepository.insertOrUpdate(customer).then((c) {
-                    if (c != null) {
-                      developer.log('customer: ' + customerToJson(c));
-                      if (widget.customer != null) {
-                        widget.customer!.name = c.name;
-                        widget.customer!.email = c.email;
+                  _customersActivitiesRepository
+                      .insertOrUpdate(customerActivity)
+                      .then((ca) {
+                    if (ca != null) {
+                      developer.log('customer: ' + customerActivityToJson(ca));
+                      if (widget.customerActivity != null) {
+                        // widget.customerActivity!.name = ca.name;
+                        // widget.customerActivity!.email = ca.email;
                         if (isAdd) {
-                          widget.customer!.createdAt = c.createdAt;
-                          widget.customer!.createdBy = c.createdBy;
+                          widget.customerActivity!.createdAt = ca.createdAt;
+                          widget.customerActivity!.createdBy = ca.createdBy;
                         }
-                        widget.customer!.modifiedAt = c.modifiedAt;
-                        widget.customer!.modifiedBy = c.modifiedBy;
+                        widget.customerActivity!.modifiedAt = ca.modifiedAt;
+                        widget.customerActivity!.modifiedBy = ca.modifiedBy;
                       }
                     }
                     Navigator.of(context).pop();
@@ -191,10 +191,11 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                 Container(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Text(
-                      customer.email,
-                      style: const TextStyle(fontSize: 20),
+                      // customer.email,
+                      '',
+                      style: TextStyle(fontSize: 20),
                     ),
                   ],
                 ),
