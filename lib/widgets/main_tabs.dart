@@ -79,8 +79,9 @@ class _MainTabsState extends State<MainTabs> {
           ActionWrapper(
             () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return const AddEditCustomer(
+                return AddEditCustomer(
                   title: 'Add Customer',
+                  onSync: onSync,
                 );
               })).then(
                 (value) => setState(() {

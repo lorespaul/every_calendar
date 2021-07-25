@@ -1,6 +1,7 @@
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/database_manager.dart';
 import 'package:every_calendar/core/db/pagination.dart';
+import 'package:flutter/material.dart';
 
 abstract class AbstractRepository<T extends AbstractEntity> {
   final DatabaseManager _databaseManager = DatabaseManager();
@@ -8,9 +9,21 @@ abstract class AbstractRepository<T extends AbstractEntity> {
   T getEntityInstance();
 
   Future<List<T>> getAll() async {
+    return await getAllFiltered();
+  }
+
+  @protected
+  Future<List<T>> getAllFiltered({
+    String where = '',
+    List<dynamic>? whereArgs,
+  }) async {
     var entity = getEntityInstance();
     String table = entity.getTableName();
-    var result = await _databaseManager.getAll(table);
+    var result = await _databaseManager.getAll(
+      table,
+      where: where,
+      whereArgs: whereArgs,
+    );
     if (result != null) {
       return result.map((e) => entity.fromMap(e) as T).toList();
     }
@@ -18,11 +31,31 @@ abstract class AbstractRepository<T extends AbstractEntity> {
   }
 
   Future<Pagination<T>> getAllPaginated(int limit, int offset) async {
+    return await getAllPaginatedFiltered(limit, offset);
+  }
+
+  @protected
+  Future<Pagination<T>> getAllPaginatedFiltered(
+    int limit,
+    int offset, {
+    String where = '',
+    List<dynamic>? whereArgs,
+  }) async {
     var entity = getEntityInstance();
     String table = entity.getTableName();
-    var result = await _databaseManager.getAllPaginated(table, limit, offset);
+    var result = await _databaseManager.getAllPaginated(
+      table,
+      limit,
+      offset,
+      where: where,
+      whereArgs: whereArgs,
+    );
     if (result != null) {
-      var count = await _databaseManager.count(table);
+      var count = await _databaseManager.count(
+        table,
+        where: where,
+        whereArgs: whereArgs,
+      );
       var deserialized = result.map((e) => entity.fromMap(e) as T).toList();
       return Pagination(
         result: deserialized,

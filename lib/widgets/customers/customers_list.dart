@@ -31,13 +31,11 @@ class CustomersList extends StatelessWidget {
             customer: entity,
             isFirst: index == 0,
             isLast: index == length - 1,
+            onSync: onSync,
           ),
           repository: _repository,
           entity: entity,
           index: index,
-          onBeforeDelete: () async {
-            // await _driveManager.denyPermission(collaborator.email);
-          },
           onDeleted: onDelete,
           deleteName: entity.name,
         );

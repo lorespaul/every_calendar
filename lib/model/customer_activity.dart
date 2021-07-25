@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:every_calendar/core/db/abstract_entity.dart';
+import 'package:every_calendar/model/value_objects/time_range.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 
 CustomerActivity customerActivityFromJson(String string) =>
@@ -12,7 +13,7 @@ class CustomerActivity extends AbstractEntity {
   String uuid;
   String uuidCustomer;
   String uuidActivity;
-  int duration;
+  TimeRange duration;
   DateTime createdAt = DateTimeUtils.nowUtc();
   String createdBy;
   DateTime modifiedAt = DateTimeUtils.nowUtc();
@@ -25,7 +26,7 @@ class CustomerActivity extends AbstractEntity {
     this.uuid = '',
     this.uuidCustomer = '',
     this.uuidActivity = '',
-    this.duration = -1,
+    this.duration = const TimeRange.zero(),
     this.createdBy = '',
     this.modifiedBy = '',
     this.modifiedByDevice = '',
@@ -38,7 +39,7 @@ class CustomerActivity extends AbstractEntity {
       : uuid = json['uuid'],
         uuidCustomer = json['uuidCustomer'],
         uuidActivity = json['uuidActivity'],
-        duration = json['duration'],
+        duration = TimeRange.fromMilliseconds(json['duration']),
         createdAt = DateTime.fromMillisecondsSinceEpoch(json['createdAt']),
         createdBy = json['createdBy'],
         modifiedAt = DateTime.fromMillisecondsSinceEpoch(json['modifiedAt']),
@@ -54,7 +55,7 @@ class CustomerActivity extends AbstractEntity {
         'uuid': uuid,
         'uuidCustomer': uuidCustomer,
         'uuidActivity': uuidActivity,
-        'duration': duration,
+        'duration': duration.toMilliseconds(),
         'createdAt': createdAt.millisecondsSinceEpoch,
         'createdBy': createdBy,
         'modifiedAt': modifiedAt.millisecondsSinceEpoch,

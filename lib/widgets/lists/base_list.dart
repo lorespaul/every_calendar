@@ -1,6 +1,7 @@
 import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/abstract_repository.dart';
+import 'package:every_calendar/core/db/pagination.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
     required this.onSync,
     this.limit = 100,
     this.scrollController,
+    this.getItems,
   }) : super(key: key);
 
   final BaseListItemBuilder<T> buildItem;
@@ -29,6 +31,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
   final Future Function(String, AbstractEntity?) onSync;
   final int limit;
   final ScrollController? scrollController;
+  final Future<Pagination<T>> Function(int, int)? getItems;
 
   @override
   State<StatefulWidget> createState() => _BaseListState<T>();
@@ -86,10 +89,12 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
 
   Future<void> _fetch(int offset) async {
     try {
-      var pagination = await widget.repository.getAllPaginated(
-        widget.limit,
-        offset,
-      );
+      var pagination = widget.getItems != null
+          ? await widget.getItems!.call(widget.limit, offset)
+          : await widget.repository.getAllPaginated(
+              widget.limit,
+              offset,
+            );
       _length = pagination.count;
       _hasNext = pagination.hasNext;
       if (!pagination.hasNext) {

@@ -1,3 +1,4 @@
+import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/model/customer.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,11 +12,13 @@ class CustomerCard extends StatefulWidget {
     required this.customer,
     required this.isFirst,
     required this.isLast,
+    required this.onSync,
   }) : super(key: key);
 
   final Customer customer;
   final bool isFirst;
   final bool isLast;
+  final Future Function(String, AbstractEntity?) onSync;
 
   @override
   State<StatefulWidget> createState() => _CustomerCardState();
@@ -37,6 +40,7 @@ class _CustomerCardState extends State<CustomerCard> {
             return AddEditCustomer(
               title: 'Edit Customer',
               customer: widget.customer,
+              onSync: widget.onSync,
             );
           })).then((value) => setState(() {}));
         },

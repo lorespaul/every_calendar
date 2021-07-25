@@ -29,13 +29,20 @@ class DatabaseManager {
   Future<List<Map<String, dynamic>>?> getAll(
     String table, {
     DateTime? fromModifiedDate,
+    String where = '',
+    List<dynamic>? whereArgs,
   }) async {
     var db = await DatabaseSetup.getDatabase();
     var where = '$_deletedAt IS NULL';
-    List<int>? args;
+    List<dynamic>? args;
     if (fromModifiedDate != null) {
       where += ' AND $_modifiedAt > ?';
       args = [fromModifiedDate.millisecondsSinceEpoch];
+    }
+    if (where != '') {
+      where = ' AND ' + where;
+      args = args ?? [];
+      args.addAll(whereArgs!);
     }
     return await db.query(
       table,
@@ -46,25 +53,51 @@ class DatabaseManager {
   }
 
   Future<List<Map<String, dynamic>>?> getAllPaginated(
-      String table, int limit, int offset) async {
+    String table,
+    int limit,
+    int offset, {
+    String where = '',
+    List<dynamic>? whereArgs,
+  }) async {
     var db = await DatabaseSetup.getDatabase();
+    if (where != '') {
+      where = ' AND ' + where;
+    }
     return await db.query(
       table,
-      where: '$_deletedAt IS NULL',
+      where: '$_deletedAt IS NULL' + where,
+      whereArgs: whereArgs,
       limit: limit,
       offset: offset,
       orderBy: '$_createdAt DESC',
     );
   }
 
-  Future<int> count(String table) async {
+  Future<int> count(
+    String table, {
+    String where = '',
+    List<dynamic>? whereArgs,
+  }) async {
     var db = await DatabaseSetup.getDatabase();
+    if (where != '') {
+      where = ' AND ' + where;
+      for (var arg in whereArgs!) {
+        dynamic value = arg.toString();
+        if (arg is String) {
+          value = '\'' + value + '\'';
+        } else if (arg is DateTime) {
+          value = arg.millisecondsSinceEpoch;
+        }
+        where = where.replaceFirst(r'?', value);
+      }
+    }
     var result = await db.rawQuery(
       '''
       SELECT COUNT($_uuid) as c
       FROM $table 
       WHERE $_deletedAt IS NULL
-      ''',
+      ''' +
+          where,
     );
     return result[0]['c'] as int;
   }
