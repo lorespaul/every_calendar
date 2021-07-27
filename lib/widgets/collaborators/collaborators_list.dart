@@ -24,6 +24,7 @@ class CollaboratorsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseList<Collaborator>(
       onSync: onSync,
+      entityInstance: Collaborator(),
       repository: _repository,
       limit: limit,
       scrollController: _scrollController,

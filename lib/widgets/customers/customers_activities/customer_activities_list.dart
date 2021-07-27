@@ -25,6 +25,7 @@ class CustomerActivitiesList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseList<CustomerActivity>(
       onSync: onSync,
+      entityInstance: CustomerActivity(),
       repository: _repository,
       limit: limit,
       getItems: (limit, offset) {

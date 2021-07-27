@@ -33,7 +33,7 @@ class DatabaseManager {
     List<dynamic>? whereArgs,
   }) async {
     var db = await DatabaseSetup.getDatabase();
-    var where = '$_deletedAt IS NULL';
+    var where = '';
     List<dynamic>? args;
     if (fromModifiedDate != null) {
       where += ' AND $_modifiedAt > ?';
@@ -46,7 +46,7 @@ class DatabaseManager {
     }
     return await db.query(
       table,
-      where: where,
+      where: '$_deletedAt IS NULL' + where,
       whereArgs: args,
       orderBy: '$_createdAt DESC',
     );
@@ -93,13 +93,19 @@ class DatabaseManager {
     }
     var result = await db.rawQuery(
       '''
-      SELECT COUNT($_uuid) as c
+      SELECT COUNT($_uuid) AS c
       FROM $table 
       WHERE $_deletedAt IS NULL
       ''' +
           where,
     );
     return result[0]['c'] as int;
+  }
+
+  /// Call this method only from repository.
+  Future<List<Map<String, Object?>>> executeRawQuery(String sql) async {
+    var db = await DatabaseSetup.getDatabase();
+    return await db.rawQuery(sql);
   }
 
   Future<Map<String, dynamic>?> getByUuid(String table, String uuid) async {

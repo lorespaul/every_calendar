@@ -15,4 +15,11 @@ abstract class AbstractEntity {
 
   Map<String, dynamic> toMap();
   AbstractEntity fromMap(Map<String, dynamic> value);
+
+  @override
+  bool operator ==(dynamic other) =>
+      other is AbstractEntity && getUuid() == other.getUuid();
+
+  @override
+  int get hashCode => getUuid().hashCode;
 }

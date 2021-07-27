@@ -34,7 +34,7 @@ class _CustomerActivityCardState extends State<CustomerActivityCard> {
   void initState() {
     super.initState();
     activityFuture =
-        _activitiesRepository.getByUuid(widget.customerActivity.uuidActivity);
+        _activitiesRepository.getByUuid(widget.customerActivity.uuidActivity!);
   }
 
   @override
@@ -56,7 +56,9 @@ class _CustomerActivityCardState extends State<CustomerActivityCard> {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
                   return AddEditCustomerActivity(
                     title: 'Edit Activity',
+                    customer: widget.customer,
                     customerActivity: widget.customerActivity,
+                    activity: activity,
                   );
                 })).then((value) => setState(() {}));
               },
@@ -123,8 +125,13 @@ class _CustomerActivityCardState extends State<CustomerActivityCard> {
         } else if (snapshot.hasError) {
           return const Text('Error');
         }
-        return const CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            ),
+          ],
         );
       },
     );

@@ -22,6 +22,7 @@ class ActivitiesList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseList<Activity>(
       onSync: onSync,
+      entityInstance: Activity(),
       repository: _repository,
       limit: limit,
       scrollController: _scrollController,

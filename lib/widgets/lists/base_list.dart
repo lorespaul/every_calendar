@@ -2,7 +2,6 @@ import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/abstract_repository.dart';
 import 'package:every_calendar/core/db/pagination.dart';
-import 'package:every_calendar/model/collaborator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -21,6 +20,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
     required this.buildItem,
     required this.repository,
     required this.onSync,
+    required this.entityInstance,
     this.limit = 100,
     this.scrollController,
     this.getItems,
@@ -29,6 +29,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
   final BaseListItemBuilder<T> buildItem;
   final AbstractRepository<T> repository;
   final Future Function(String, AbstractEntity?) onSync;
+  final T entityInstance;
   final int limit;
   final ScrollController? scrollController;
   final Future<Pagination<T>> Function(int, int)? getItems;
@@ -112,7 +113,7 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
 
   Future _onRefresh() {
     return widget
-        .onSync(AllConstants.currentContext, Collaborator())
+        .onSync(AllConstants.currentContext, widget.entityInstance)
         .timeout(const Duration(seconds: 3))
         .then((val) => _pagingController.refresh());
   }

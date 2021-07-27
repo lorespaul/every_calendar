@@ -11,8 +11,8 @@ String customerActivityToJson(CustomerActivity customerActivity) =>
 
 class CustomerActivity extends AbstractEntity {
   String uuid;
-  String uuidCustomer;
-  String uuidActivity;
+  String? uuidCustomer;
+  String? uuidActivity;
   TimeRange duration;
   DateTime createdAt = DateTimeUtils.nowUtc();
   String createdBy;
@@ -24,8 +24,6 @@ class CustomerActivity extends AbstractEntity {
 
   CustomerActivity({
     this.uuid = '',
-    this.uuidCustomer = '',
-    this.uuidActivity = '',
     this.duration = const TimeRange.zero(),
     this.createdBy = '',
     this.modifiedBy = '',

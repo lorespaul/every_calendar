@@ -4,7 +4,8 @@ import 'package:every_calendar/core/db/pagination.dart';
 import 'package:flutter/material.dart';
 
 abstract class AbstractRepository<T extends AbstractEntity> {
-  final DatabaseManager _databaseManager = DatabaseManager();
+  @protected
+  final DatabaseManager databaseManager = DatabaseManager();
 
   T getEntityInstance();
 
@@ -19,7 +20,7 @@ abstract class AbstractRepository<T extends AbstractEntity> {
   }) async {
     var entity = getEntityInstance();
     String table = entity.getTableName();
-    var result = await _databaseManager.getAll(
+    var result = await databaseManager.getAll(
       table,
       where: where,
       whereArgs: whereArgs,
@@ -43,7 +44,7 @@ abstract class AbstractRepository<T extends AbstractEntity> {
   }) async {
     var entity = getEntityInstance();
     String table = entity.getTableName();
-    var result = await _databaseManager.getAllPaginated(
+    var result = await databaseManager.getAllPaginated(
       table,
       limit,
       offset,
@@ -51,7 +52,7 @@ abstract class AbstractRepository<T extends AbstractEntity> {
       whereArgs: whereArgs,
     );
     if (result != null) {
-      var count = await _databaseManager.count(
+      var count = await databaseManager.count(
         table,
         where: where,
         whereArgs: whereArgs,
@@ -75,7 +76,7 @@ abstract class AbstractRepository<T extends AbstractEntity> {
   Future<T?> getByUuid(String uuid) async {
     var entity = getEntityInstance();
     String table = entity.getTableName();
-    var result = await _databaseManager.getByUuid(table, uuid);
+    var result = await databaseManager.getByUuid(table, uuid);
     if (result != null) {
       return entity.fromMap(result) as T;
     }
@@ -84,7 +85,7 @@ abstract class AbstractRepository<T extends AbstractEntity> {
 
   Future<T?> insert(T entity) async {
     String table = entity.getTableName();
-    var result = await _databaseManager.insert(table, entity);
+    var result = await databaseManager.insert(table, entity);
     if (result != null) {
       return entity.fromMap(result) as T;
     }
@@ -93,7 +94,7 @@ abstract class AbstractRepository<T extends AbstractEntity> {
 
   Future<T?> insertOrUpdate(T entity) async {
     String table = entity.getTableName();
-    var result = await _databaseManager.insertOrUpdate(table, entity);
+    var result = await databaseManager.insertOrUpdate(table, entity);
     if (result != null) {
       return entity.fromMap(result) as T;
     }
@@ -102,7 +103,7 @@ abstract class AbstractRepository<T extends AbstractEntity> {
 
   Future<T?> update(T entity) async {
     String table = entity.getTableName();
-    var result = await _databaseManager.update(table, entity.getUuid(), entity);
+    var result = await databaseManager.update(table, entity.getUuid(), entity);
     if (result != null) {
       return entity.fromMap(result) as T;
     }
@@ -111,6 +112,6 @@ abstract class AbstractRepository<T extends AbstractEntity> {
 
   Future<void> delete(T entity) async {
     String table = entity.getTableName();
-    await _databaseManager.logicalDeleteByUuid(table, entity.getUuid(), entity);
+    await databaseManager.logicalDeleteByUuid(table, entity.getUuid(), entity);
   }
 }

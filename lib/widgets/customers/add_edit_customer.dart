@@ -122,22 +122,26 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                   ),
                   Container(
                     width: MediaQuery.of(context).size.width - 30,
-                    margin: const EdgeInsets.only(left: 15, right: 15, top: 15),
+                    margin: const EdgeInsets.all(15),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return const AddEditCustomerActivity(
-                                title: 'Add Customer activity',
+                          onPressed: () async {
+                            var c = await saveCustomer();
+                            if (c != null) {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) {
+                                return AddEditCustomerActivity(
+                                  title: 'Add Customer activity',
+                                  customer: c,
+                                );
+                              })).then(
+                                (value) => setState(() {
+                                  _addPageKey = GlobalKey();
+                                }),
                               );
-                            })).then(
-                              (value) => setState(() {
-                                _addPageKey = GlobalKey();
-                              }),
-                            );
+                            }
                           },
                           child: Row(
                             children: [
@@ -152,11 +156,39 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
                       ],
                     ),
                   ),
-                  CustomerActivitiesList(
-                    key: _addPageKey,
-                    customer: customer,
-                    onSync: widget.onSync,
-                  )
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        CustomerActivitiesList(
+                          key: _addPageKey,
+                          customer: customer,
+                          onSync: widget.onSync,
+                        ),
+                        Positioned(
+                          top: -5,
+                          width: MediaQuery.of(context).size.width,
+                          child: Container(
+                            height: 5,
+                            decoration: BoxDecoration(
+                              border: const Border(
+                                top: BorderSide(
+                                  width: 1,
+                                  color: Colors.black45,
+                                ),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 1,
+                                  blurRadius: 7,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -164,49 +196,54 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
         },
         actionButton: FloatingActionButton(
           onPressed: () async {
-            _loaderController.showLoader(context);
-            try {
-              if (_formKey.currentState!.validate()) {
-                FocusScope.of(context).unfocus();
-                await Future.delayed(const Duration(milliseconds: 100),
-                    () async {
-                  var now = DateTimeUtils.nowUtc();
-                  if (isAdd) {
-                    customer.createdAt = now;
-                    customer.createdBy = _loginService.loggedUser.email;
-                  }
-                  customer.modifiedAt = now;
-                  customer.modifiedBy = _loginService.loggedUser.email;
-
-                  _customersRepository.insertOrUpdate(customer).then((c) {
-                    if (c != null) {
-                      developer.log('customer: ' + customerToJson(c));
-                      if (widget.customer != null) {
-                        widget.customer!.name = c.name;
-                        widget.customer!.email = c.email;
-                        if (isAdd) {
-                          widget.customer!.createdAt = c.createdAt;
-                          widget.customer!.createdBy = c.createdBy;
-                        }
-                        widget.customer!.modifiedAt = c.modifiedAt;
-                        widget.customer!.modifiedBy = c.modifiedBy;
-                      }
-                    }
-                    Navigator.of(context).pop();
-                  });
-                });
-              }
-            } catch (e) {
-              showErrorDialog();
-            } finally {
-              _loaderController.hideLoader();
-            }
+            await Future.delayed(const Duration(milliseconds: 100), () async {
+              await saveCustomer();
+            });
+            Navigator.of(context).pop();
           },
           child: isAdd ? const Icon(Icons.add) : const Icon(Icons.save_alt),
           backgroundColor: Colors.green,
         ),
       ),
     );
+  }
+
+  Future<Customer?> saveCustomer() async {
+    _loaderController.showLoader(context);
+    try {
+      if (_formKey.currentState!.validate()) {
+        FocusScope.of(context).unfocus();
+        var now = DateTimeUtils.nowUtc();
+        if (isAdd) {
+          customer.createdAt = now;
+          customer.createdBy = _loginService.loggedUser.email;
+        }
+        customer.modifiedAt = now;
+        customer.modifiedBy = _loginService.loggedUser.email;
+
+        var c = await _customersRepository.insertOrUpdate(customer);
+
+        if (c != null) {
+          developer.log('customer: ' + customerToJson(c));
+          if (widget.customer != null) {
+            widget.customer!.name = c.name;
+            widget.customer!.email = c.email;
+            if (isAdd) {
+              widget.customer!.createdAt = c.createdAt;
+              widget.customer!.createdBy = c.createdBy;
+            }
+            widget.customer!.modifiedAt = c.modifiedAt;
+            widget.customer!.modifiedBy = c.modifiedBy;
+          }
+        }
+        return c;
+      }
+    } catch (e) {
+      showErrorDialog();
+    } finally {
+      _loaderController.hideLoader();
+    }
+    return null;
   }
 
   Future<void> showErrorDialog() async {

@@ -22,6 +22,7 @@ class CustomersList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseList<Customer>(
       onSync: onSync,
+      entityInstance: Customer(),
       repository: _repository,
       limit: limit,
       scrollController: _scrollController,
