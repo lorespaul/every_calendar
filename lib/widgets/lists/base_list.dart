@@ -24,6 +24,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
     this.limit = 100,
     this.scrollController,
     this.getItems,
+    this.expand = true,
   }) : super(key: key);
 
   final BaseListItemBuilder<T> buildItem;
@@ -33,6 +34,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
   final int limit;
   final ScrollController? scrollController;
   final Future<Pagination<T>> Function(int, int)? getItems;
+  final bool expand;
 
   @override
   State<StatefulWidget> createState() => _BaseListState<T>();
@@ -60,32 +62,36 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: RefreshIndicator(
-        onRefresh: _onRefresh,
-        backgroundColor: Colors.green,
-        color: Colors.white,
-        child: PagedListView<int, T>(
-          // padding: const EdgeInsets.all(5.0),
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          pagingController: _pagingController,
-          scrollController: widget.scrollController,
-          builderDelegate: PagedChildBuilderDelegate<T>(
-            itemBuilder: (ctx, c, index) {
-              return widget.buildItem(
-                ctx,
-                c,
-                index,
-                _length,
-                () => _onDelete(c, index),
-              );
-            },
-          ),
+    var list = RefreshIndicator(
+      onRefresh: _onRefresh,
+      backgroundColor: Colors.green,
+      color: Colors.white,
+      child: PagedListView<int, T>(
+        // padding: const EdgeInsets.all(5.0),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        pagingController: _pagingController,
+        scrollController: widget.scrollController,
+        builderDelegate: PagedChildBuilderDelegate<T>(
+          itemBuilder: (ctx, c, index) {
+            return widget.buildItem(
+              ctx,
+              c,
+              index,
+              _length,
+              () => _onDelete(c, index),
+            );
+          },
         ),
       ),
     );
+    if (widget.expand) {
+      return Expanded(
+        child: list,
+      );
+    }
+    return list;
   }
 
   Future<void> _fetch(int offset) async {

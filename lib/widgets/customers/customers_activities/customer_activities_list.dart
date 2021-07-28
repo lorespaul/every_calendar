@@ -28,6 +28,7 @@ class CustomerActivitiesList extends StatelessWidget {
       entityInstance: CustomerActivity(),
       repository: _repository,
       limit: limit,
+      expand: false,
       getItems: (limit, offset) {
         return _repository.getAllPaginatedByCustomer(
           limit,
