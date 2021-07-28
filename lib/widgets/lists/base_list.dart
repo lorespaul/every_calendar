@@ -29,7 +29,7 @@ class BaseList<T extends AbstractEntity> extends StatefulWidget {
 
   final BaseListItemBuilder<T> buildItem;
   final AbstractRepository<T> repository;
-  final Future Function(String, AbstractEntity?) onSync;
+  final Future Function(String, List<AbstractEntity>) onSync;
   final T entityInstance;
   final int limit;
   final ScrollController? scrollController;
@@ -119,7 +119,7 @@ class _BaseListState<T extends AbstractEntity> extends State<BaseList<T>> {
 
   Future _onRefresh() {
     return widget
-        .onSync(AllConstants.currentContext, widget.entityInstance)
+        .onSync(AllConstants.currentContext, [widget.entityInstance])
         .timeout(const Duration(seconds: 3))
         .then((val) => _pagingController.refresh());
   }

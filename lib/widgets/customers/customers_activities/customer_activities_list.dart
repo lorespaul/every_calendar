@@ -16,7 +16,7 @@ class CustomerActivitiesList extends StatelessWidget {
   }) : super(key: key);
 
   final Customer customer;
-  final Future Function(String, AbstractEntity?) onSync;
+  final Future Function(String, List<AbstractEntity>) onSync;
   final int limit;
   final CustomersActivitiesRepository _repository =
       CustomersActivitiesRepository();
@@ -38,6 +38,7 @@ class CustomerActivitiesList extends StatelessWidget {
       },
       buildItem: (ctx, entity, index, length, onDelete) {
         return StackCardWrapper<CustomerActivity>(
+          onSync: onSync,
           child: CustomerActivityCard(
             customer: customer,
             customerActivity: entity,

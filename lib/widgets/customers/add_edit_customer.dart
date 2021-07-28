@@ -24,7 +24,7 @@ class AddEditCustomer extends StatefulWidget {
 
   final String title;
   final Customer? customer;
-  final Future Function(String, AbstractEntity?) onSync;
+  final Future Function(String, List<AbstractEntity>) onSync;
 
   @override
   State<StatefulWidget> createState() => _AddEditCustomerState();

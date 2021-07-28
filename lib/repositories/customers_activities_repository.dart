@@ -19,4 +19,22 @@ class CustomersActivitiesRepository
       whereArgs: [uuidCustomer],
     );
   }
+
+  Future<int> logicalDeleteByActivityUuid(String uuidActivity) async {
+    var e = getEntityInstance();
+    return await databaseManager.logicalDelete(
+      e.getTableName(),
+      'uuidActivity = ?',
+      [uuidActivity],
+    );
+  }
+
+  Future<int> logicalDeleteByCustomerUuid(String uuidCustomer) async {
+    var e = getEntityInstance();
+    return await databaseManager.logicalDelete(
+      e.getTableName(),
+      'uuidCustomer = ?',
+      [uuidCustomer],
+    );
+  }
 }

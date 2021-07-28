@@ -1,6 +1,9 @@
+import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/model/activity.dart';
+import 'package:every_calendar/model/customer_activity.dart';
 import 'package:every_calendar/repositories/activities_repository.dart';
+import 'package:every_calendar/repositories/customers_activities_repository.dart';
 import 'package:every_calendar/widgets/activities/activity_card.dart';
 import 'package:every_calendar/widgets/lists/stack_card_wrapper.dart';
 import 'package:every_calendar/widgets/lists/base_list.dart';
@@ -13,9 +16,11 @@ class ActivitiesList extends StatelessWidget {
     this.limit = 100,
   }) : super(key: key);
 
-  final Future Function(String, AbstractEntity?) onSync;
+  final Future Function(String, List<AbstractEntity>) onSync;
   final int limit;
   final ActivitiesRepository _repository = ActivitiesRepository();
+  final CustomersActivitiesRepository _customersActivitiesRepository =
+      CustomersActivitiesRepository();
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -37,9 +42,17 @@ class ActivitiesList extends StatelessWidget {
           entity: entity,
           index: index,
           onBeforeDelete: () async {
-            // await _driveManager.denyPermission(collaborator.email);
+            await _customersActivitiesRepository.logicalDeleteByActivityUuid(
+              entity.getUuid(),
+            );
           },
-          onDeleted: onDelete,
+          onDeleted: () {
+            onSync(AllConstants.currentContext, [
+              Activity(),
+              CustomerActivity(),
+            ]);
+            onDelete();
+          },
           deleteName: entity.name,
         );
       },

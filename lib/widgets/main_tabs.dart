@@ -21,7 +21,7 @@ class MainTabs extends StatefulWidget {
 
   final String title;
   final Function() onLogout;
-  final Future Function(String, AbstractEntity?) onSync;
+  final Future Function(String, List<AbstractEntity>) onSync;
 
   @override
   State<StatefulWidget> createState() => _MainTabsState();
@@ -39,7 +39,7 @@ class _MainTabsState extends State<MainTabs> {
   }
 
   List<WidgetWrapper> createTabWidgets(
-    Future Function(String, AbstractEntity?) onSync,
+    Future Function(String, List<AbstractEntity>) onSync,
   ) {
     return [
       WidgetWrapper(
@@ -132,7 +132,7 @@ class _MainTabsState extends State<MainTabs> {
       drawer: NavDrawer(
         title: widget.title,
         onLogout: widget.onLogout,
-        onSync: (c) => widget.onSync(c, null),
+        onSync: (c) => widget.onSync(c, []),
       ),
       appBar: AppBar(
         toolbarHeight: Dimensions.appBarHeight,

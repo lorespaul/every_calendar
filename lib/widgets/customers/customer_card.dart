@@ -18,7 +18,7 @@ class CustomerCard extends StatefulWidget {
   final Customer customer;
   final bool isFirst;
   final bool isLast;
-  final Future Function(String, AbstractEntity?) onSync;
+  final Future Function(String, List<AbstractEntity>) onSync;
 
   @override
   State<StatefulWidget> createState() => _CustomerCardState();

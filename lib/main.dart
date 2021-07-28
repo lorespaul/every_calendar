@@ -103,7 +103,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> setupTenantAndSync(
     String context,
-    AbstractEntity? entity,
+    List<AbstractEntity> entities,
   ) async {
     if (context != AllConstants.currentContext) {
       await DatabaseSetup.setup(
@@ -114,14 +114,14 @@ class _HomePageState extends State<HomePage> {
     } else {
       context = DatabaseSetup.getContext();
     }
-    List<AbstractEntity> collections = entity == null
+    List<AbstractEntity> collections = entities.isEmpty
         ? [
             Collaborator(),
             Customer(),
             CustomerActivity(),
             Activity(),
           ]
-        : [entity];
+        : entities;
     _syncManager
       ..tenantFolder = context
       ..collections = collections;
@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> {
       var selectedTenant = config!.tenants.firstWhereOrNull(
         (e) => e.id == tenantId,
       );
-      await setupTenantAndSync(selectedTenant!.context, null);
+      await setupTenantAndSync(selectedTenant!.context, []);
     } else {
       chooseTenant();
     }
@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> {
         builder: (context) {
           return Tenants(
             onSync: (c) async {
-              setupTenantAndSync(c, null);
+              setupTenantAndSync(c, []);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (c) {

@@ -259,6 +259,26 @@ class DatabaseManager {
     return getByUuid(table, uuid);
   }
 
+  Future<int> logicalDelete(
+    String table,
+    String where,
+    List<dynamic> whereArgs,
+  ) async {
+    var db = await DatabaseSetup.getDatabase();
+
+    var value = {
+      _deletedAt: DateTimeUtils.nowUtc().millisecondsSinceEpoch,
+      _deletedBy: DatabaseManager.getOwner!(),
+    };
+
+    return await db.update(
+      table,
+      value,
+      where: where,
+      whereArgs: whereArgs,
+    );
+  }
+
   /// Don't call this method if you don't know what you are doing.
   ///
   /// This is used only by synchronizer.

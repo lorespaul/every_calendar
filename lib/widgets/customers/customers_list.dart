@@ -1,5 +1,8 @@
+import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/model/customer.dart';
+import 'package:every_calendar/model/customer_activity.dart';
+import 'package:every_calendar/repositories/customers_activities_repository.dart';
 import 'package:every_calendar/repositories/customers_repository.dart';
 import 'package:every_calendar/widgets/customers/customer_card.dart';
 import 'package:every_calendar/widgets/lists/stack_card_wrapper.dart';
@@ -13,9 +16,11 @@ class CustomersList extends StatelessWidget {
     this.limit = 100,
   }) : super(key: key);
 
-  final Future Function(String, AbstractEntity?) onSync;
+  final Future Function(String, List<AbstractEntity>) onSync;
   final int limit;
   final CustomersRepository _repository = CustomersRepository();
+  final CustomersActivitiesRepository _customersActivitiesRepository =
+      CustomersActivitiesRepository();
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -37,7 +42,17 @@ class CustomersList extends StatelessWidget {
           repository: _repository,
           entity: entity,
           index: index,
-          onDeleted: onDelete,
+          onBeforeDelete: () async {
+            await _customersActivitiesRepository.logicalDeleteByCustomerUuid(
+              entity.getUuid(),
+            );
+          },
+          onDeleted: () {
+            onSync(AllConstants.currentContext, [
+              Customer(),
+              CustomerActivity(),
+            ]);
+          },
           deleteName: entity.name,
         );
       },
