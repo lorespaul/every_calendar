@@ -33,16 +33,18 @@ class DatabaseManager {
     List<dynamic>? whereArgs,
   }) async {
     var db = await DatabaseSetup.getDatabase();
-    var where = '';
     List<dynamic>? args;
-    if (fromModifiedDate != null) {
-      where += ' AND $_modifiedAt > ?';
-      args = [fromModifiedDate.millisecondsSinceEpoch];
-    }
     if (where != '') {
       where = ' AND ' + where;
-      args = args ?? [];
-      args.addAll(whereArgs!);
+      if (whereArgs != null) {
+        args ??= [];
+        args.addAll(whereArgs);
+      }
+    }
+    if (fromModifiedDate != null) {
+      where += ' AND $_modifiedAt > ?';
+      args ??= [];
+      args.add(fromModifiedDate.millisecondsSinceEpoch);
     }
     return await db.query(
       table,

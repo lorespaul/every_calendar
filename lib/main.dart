@@ -55,8 +55,8 @@ class _HomePageState extends State<HomePage> {
   final LoginService _loginService = LoginService();
   final DriveManager _driveManager = DriveManager();
   final LoaderController _loaderController = LoaderController();
-  final SyncManager _syncManager = SyncManager();
   final DeviceService _deviceService = DeviceService();
+  SyncManager? _syncManager;
 
   bool isLoggedIn = false;
 
@@ -122,10 +122,11 @@ class _HomePageState extends State<HomePage> {
             Activity(),
           ]
         : entities;
-    _syncManager
-      ..tenantFolder = context
-      ..collections = collections;
-    return _syncManager.synchronize();
+
+    if (_syncManager == null || _syncManager!.tenantFolder != context) {
+      _syncManager = SyncManager()..tenantFolder = context;
+    }
+    return _syncManager!.synchronize(collections);
   }
 
   Future<void> initTenant() async {

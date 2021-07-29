@@ -300,41 +300,36 @@ class _AddEditCustomerActivityState extends State<AddEditCustomerActivity> {
             try {
               if (_formKey.currentState!.validate()) {
                 FocusScope.of(context).unfocus();
-                await Future.delayed(const Duration(milliseconds: 100),
-                    () async {
-                  var now = DateTimeUtils.nowUtc();
-                  if (isAdd) {
-                    customerActivity.createdAt = now;
-                    customerActivity.createdBy = _loginService.loggedUser.email;
-                  }
-                  customerActivity.modifiedAt = now;
-                  customerActivity.modifiedBy = _loginService.loggedUser.email;
-                  customerActivity.uuidCustomer = widget.customer.uuid;
-                  customerActivity.uuidActivity = activity!.uuid;
+                var now = DateTimeUtils.nowUtc();
+                if (isAdd) {
+                  customerActivity.createdAt = now;
+                  customerActivity.createdBy = _loginService.loggedUser.email;
+                }
+                customerActivity.modifiedAt = now;
+                customerActivity.modifiedBy = _loginService.loggedUser.email;
+                customerActivity.uuidCustomer = widget.customer.uuid;
+                customerActivity.uuidActivity = activity!.uuid;
 
-                  _customersActivitiesRepository
-                      .insertOrUpdate(customerActivity)
-                      .then((ca) {
-                    if (ca != null) {
-                      developer.log('customer: ' + customerActivityToJson(ca));
-                      if (widget.customerActivity != null) {
-                        widget.customerActivity!.uuidCustomer = ca.uuidCustomer;
-                        widget.customerActivity!.uuidActivity = ca.uuidActivity;
-                        widget.customerActivity!.duration = ca.duration;
-                        if (isAdd) {
-                          widget.customerActivity!.createdAt = ca.createdAt;
-                          widget.customerActivity!.createdBy = ca.createdBy;
-                        }
-                        widget.customerActivity!.modifiedAt = ca.modifiedAt;
-                        widget.customerActivity!.modifiedBy = ca.modifiedBy;
+                _customersActivitiesRepository
+                    .insertOrUpdate(customerActivity)
+                    .then((ca) {
+                  if (ca != null) {
+                    developer.log('customer: ' + customerActivityToJson(ca));
+                    if (widget.customerActivity != null) {
+                      widget.customerActivity!.uuidCustomer = ca.uuidCustomer;
+                      widget.customerActivity!.uuidActivity = ca.uuidActivity;
+                      widget.customerActivity!.duration = ca.duration;
+                      if (isAdd) {
+                        widget.customerActivity!.createdAt = ca.createdAt;
+                        widget.customerActivity!.createdBy = ca.createdBy;
                       }
+                      widget.customerActivity!.modifiedAt = ca.modifiedAt;
+                      widget.customerActivity!.modifiedBy = ca.modifiedBy;
                     }
-                    Navigator.of(context).pop();
-                  });
+                  }
+                  Navigator.of(context).pop();
                 });
               }
-            } catch (e) {
-              showErrorDialog();
             } finally {
               _loaderController.hideLoader();
             }
@@ -343,60 +338,6 @@ class _AddEditCustomerActivityState extends State<AddEditCustomerActivity> {
           backgroundColor: Colors.green,
         ),
       ),
-    );
-  }
-
-  Future<void> showErrorDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text('Error'),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Container(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text('Can\'t share with'),
-                  ],
-                ),
-                Container(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text(
-                      // customer.email,
-                      '',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  child: const Text('CANCEL'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          ],
-        );
-      },
     );
   }
 }

@@ -30,7 +30,6 @@ class CollaboratorsList extends StatelessWidget {
       scrollController: _scrollController,
       buildItem: (ctx, entity, index, length, onDelete) {
         return StackCardWrapper<Collaborator>(
-          onSync: onSync,
           child: CollaboratorCard(
             collaborator: entity,
             isFirst: index == 0,

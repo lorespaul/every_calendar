@@ -21,7 +21,6 @@ class SyncManager {
   final DriveManager _driveManager = DriveManager();
   final LoginService _loginService = LoginService();
   String? tenantFolder;
-  List<AbstractEntity>? collections;
 
   final Lock _lock = Lock();
 
@@ -30,10 +29,7 @@ class SyncManager {
     return _instance;
   }
 
-  Future<void> synchronize() async {
-    if (_lock.locked) {
-      return;
-    }
+  Future<void> synchronize(List<AbstractEntity> collections) async {
     await _lock.synchronized(() async {
       try {
         var nextLastRefresh =
@@ -41,7 +37,7 @@ class SyncManager {
         File remoteTenantFolder =
             await _driveManager.getRemoteTenantFolder(tenantFolder!);
 
-        for (var collection in collections!) {
+        for (var collection in collections) {
           var collectionName = collection.getTableName();
           var lastRefresh = await _getLastResfresh(collection);
           var remoteFolder = await _driveManager.getOrCreateDriveFolder(

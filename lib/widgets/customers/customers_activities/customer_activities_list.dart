@@ -38,7 +38,6 @@ class CustomerActivitiesList extends StatelessWidget {
       },
       buildItem: (ctx, entity, index, length, onDelete) {
         return StackCardWrapper<CustomerActivity>(
-          onSync: onSync,
           child: CustomerActivityCard(
             customer: customer,
             customerActivity: entity,

@@ -1,4 +1,3 @@
-import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/controllers/loader_controller.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/abstract_repository.dart';
@@ -15,7 +14,6 @@ class StackCardWrapper<T extends AbstractEntity> extends StatefulWidget {
     this.onBeforeDelete,
     required this.onDeleted,
     required this.deleteName,
-    this.onSync,
   }) : super(key: key);
 
   final Widget child;
@@ -25,7 +23,6 @@ class StackCardWrapper<T extends AbstractEntity> extends StatefulWidget {
   final Future Function()? onBeforeDelete;
   final Function() onDeleted;
   final String deleteName;
-  final Future Function(String, List<AbstractEntity>)? onSync;
 
   @override
   State<StatefulWidget> createState() => _StackCardStateWrapper<T>();
@@ -133,10 +130,6 @@ class _StackCardStateWrapper<T extends AbstractEntity>
                     _loaderController.showLoader(context);
                     await widget.onBeforeDelete?.call();
                     await widget.repository.delete(entity);
-                    widget.onSync?.call(
-                      AllConstants.currentContext,
-                      [widget.entity],
-                    );
                     _loaderController.hideLoader();
                     _isDismissing = true;
                     setState(() {});

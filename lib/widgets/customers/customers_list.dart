@@ -48,10 +48,8 @@ class CustomersList extends StatelessWidget {
             );
           },
           onDeleted: () {
-            onSync(AllConstants.currentContext, [
-              Customer(),
-              CustomerActivity(),
-            ]);
+            onSync(AllConstants.currentContext, [CustomerActivity()]);
+            onDelete();
           },
           deleteName: entity.name,
         );

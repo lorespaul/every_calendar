@@ -47,10 +47,7 @@ class ActivitiesList extends StatelessWidget {
             );
           },
           onDeleted: () {
-            onSync(AllConstants.currentContext, [
-              Activity(),
-              CustomerActivity(),
-            ]);
+            onSync(AllConstants.currentContext, [CustomerActivity()]);
             onDelete();
           },
           deleteName: entity.name,
