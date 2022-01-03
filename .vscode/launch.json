@@ -24,6 +24,12 @@
             "flutterMode": "profile"
         },
         {
+            "name": "ios simulator",
+            "request": "launch",
+            "args": ["-d", "EFAFEF1B-54E2-482D-B9AB-F0726F7DAB78"],
+            "type": "dart"
+        },
+        {
             "name": "web",
             "request": "launch",
             "args": ["-d", "chrome", "--web-port=1234"],
