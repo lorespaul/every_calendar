@@ -1,5 +1,5 @@
 import 'package:every_calendar/core/db/abstract_entity.dart';
-import 'package:every_calendar/core/google/drive_manager.dart';
+// import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/repositories/collaborators_repository.dart';
 import 'package:every_calendar/widgets/collaborators/collaborator_card.dart';
@@ -18,7 +18,7 @@ class CollaboratorsList extends StatelessWidget {
   final int limit;
   final CollaboratorsRepository _repository = CollaboratorsRepository();
   final ScrollController _scrollController = ScrollController();
-  final DriveManager _driveManager = DriveManager();
+  // final DriveManager _driveManager = DriveManager();
 
   @override
   Widget build(BuildContext context) {
