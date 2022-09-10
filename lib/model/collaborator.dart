@@ -63,6 +63,9 @@ class Collaborator extends AbstractEntity {
   @override
   String getTableName() => 'collaborators';
 
+  @override 
+  Visibility getVisibility() => Visibility();
+
   @override
   AbstractEntity fromMap(Map<String, dynamic> value) =>
       Collaborator.fromMap(value);

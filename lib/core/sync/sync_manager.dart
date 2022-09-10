@@ -43,6 +43,8 @@ class SyncManager {
           var remoteFolder = await _driveManager.getOrCreateDriveFolder(
             collectionName,
             parentId: remoteTenantFolder.id!,
+            permissionType: collection.getVisibility().type,
+            permissionRole: collection.getVisibility().role,
           );
 
           var remoteFiles = await _driveManager.getRemoteFilesInFolder(
@@ -81,6 +83,8 @@ class SyncManager {
       var remoteFolder = await _driveManager.getOrCreateDriveFolder(
         collectionName,
         parentId: remoteTenantFolder.id!,
+        permissionType: collection.getVisibility().type,
+        permissionRole: collection.getVisibility().role,
       );
 
       var remoteFiles = await _driveManager.getRemoteFileInFolder(

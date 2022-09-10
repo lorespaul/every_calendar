@@ -62,6 +62,9 @@ class Customer extends AbstractEntity {
   @override
   String getTableName() => 'customers';
 
+  @override 
+  Visibility getVisibility() => Visibility();
+
   @override
   AbstractEntity fromMap(Map<String, dynamic> value) => Customer.fromMap(value);
 

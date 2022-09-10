@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:every_calendar/core/db/abstract_entity.dart';
+import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/model/value_objects/time_range.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 
@@ -66,6 +67,11 @@ class Activity extends AbstractEntity {
 
   @override
   String getTableName() => 'activities';
+
+  @override 
+  Visibility getVisibility() => Visibility()
+    ..type = PermissionType.anyone
+    ..role = PermissionRole.reader;
 
   @override
   AbstractEntity fromMap(Map<String, dynamic> value) => Activity.fromMap(value);

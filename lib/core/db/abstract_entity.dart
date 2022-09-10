@@ -1,5 +1,8 @@
+import 'package:every_calendar/core/google/drive_manager.dart';
+
 abstract class AbstractEntity {
   String getTableName();
+  Visibility getVisibility();
 
   String getUuid();
 
@@ -22,4 +25,9 @@ abstract class AbstractEntity {
 
   @override
   int get hashCode => getUuid().hashCode;
+}
+
+class Visibility {
+  PermissionType? type;
+  PermissionRole? role;
 }

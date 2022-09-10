@@ -35,8 +35,8 @@ class LoginService {
       _currentUser = account;
       if (account != null) {
         await _initAuthClient(account);
+        onLoggedIn?.call();
       }
-      onLoggedIn?.call();
     });
   }
 

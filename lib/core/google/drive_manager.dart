@@ -140,14 +140,19 @@ class DriveManager {
     return await driveApi.files.update(fileMetadata, fileId);
   }
 
-  Future<void> grantPermission(String email) async {
+  Future<void> grantPermission(
+    String fileId, 
+    PermissionType type,
+    PermissionRole role, {
+    String? email,
+  }) async {
     var driveApi = getDriveApi();
-    File folder = await getRemoteTenantFolder(DatabaseSetup.getContext());
+    // File folder = await getRemoteTenantFolder(DatabaseSetup.getContext());
     var request = Permission()
-      ..type = 'user'
-      ..role = 'writer'
+      ..type = type.toShortString()
+      ..role = role.toShortString()
       ..emailAddress = email;
-    await driveApi.permissions.create(request, folder.id!);
+    await driveApi.permissions.create(request, fileId);
   }
 
   Future<void> denyPermission(String email) async {
@@ -195,6 +200,9 @@ class DriveManager {
   Future<File> getOrCreateDriveFolder(
     String name, {
     String parentId = '',
+    PermissionType? permissionType,
+    PermissionRole? permissionRole,
+    String? email
   }) async {
     var driveApi = getDriveApi();
     FileList folder = await driveApi.files.list(
@@ -212,6 +220,9 @@ class DriveManager {
         fileMetadata.parents = [parentId];
       }
       result = await driveApi.files.create(fileMetadata);
+      if(permissionType != null && permissionRole != null) {
+        await grantPermission(result.id!, permissionType, permissionRole, email: email);
+      }
     }
 
     return result;
@@ -261,5 +272,23 @@ class DriveManager {
       return folder.files!;
     }
     return List.empty();
+  }
+}
+
+enum PermissionType {
+  user,
+  group,
+  domain,
+  anyone
+}
+
+enum PermissionRole {
+  reader,
+  writer
+}
+
+extension on Enum {
+  String toShortString() {
+    return toString().split('.').last;
   }
 }
