@@ -61,7 +61,7 @@ class _AddEditCollaboratorState extends State<AddEditCollaborator> {
       },
       child: ScaffoldWrapper(
         title: widget.title,
-        builder: (ctx) {
+        builder: (_) {
           return Form(
             key: _formKey,
             child: Container(

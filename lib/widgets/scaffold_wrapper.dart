@@ -1,3 +1,4 @@
+import 'package:every_calendar/constants/dimensions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -19,6 +20,7 @@ class ScaffoldWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: Dimensions.appBarHeight,
         title: Text(title),
       ),
       body: Center(

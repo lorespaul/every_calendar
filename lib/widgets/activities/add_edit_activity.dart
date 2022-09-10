@@ -6,6 +6,7 @@ import 'package:every_calendar/core/google/login_service.dart';
 import 'package:every_calendar/model/value_objects/time_range.dart';
 import 'package:every_calendar/repositories/activities_repository.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
+import 'package:every_calendar/widgets/scaffold_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
@@ -55,17 +56,14 @@ class _AddEditActivityState extends State<AddEditActivity> {
         FocusScope.of(context).requestFocus(FocusNode());
         return Future.delayed(const Duration(milliseconds: 100), () => true);
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
+      child: ScaffoldWrapper(
+        title: widget.title,
+        builder: (_) {
+          return Form(
+            key: _formKey,
             child: Container(
               padding: const EdgeInsets.only(top: 20),
               child: Column(
-                // mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
@@ -167,9 +165,9 @@ class _AddEditActivityState extends State<AddEditActivity> {
                 ],
               ),
             ),
-          ),
-        ),
-        floatingActionButton: FloatingActionButton(
+          );
+        },
+        actionButton: FloatingActionButton(
           onPressed: () async {
             _loaderController.showLoader(context);
             if (_formKey.currentState!.validate()) {

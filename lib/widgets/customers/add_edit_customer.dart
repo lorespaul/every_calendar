@@ -63,7 +63,7 @@ class _AddEditCustomerState extends State<AddEditCustomer> {
       },
       child: ScaffoldWrapper(
         title: widget.title,
-        builder: (ctx) {
+        builder: (_) {
           return Form(
             key: _formKey,
             child: Container(
