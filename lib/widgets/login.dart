@@ -1,5 +1,4 @@
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatelessWidget {

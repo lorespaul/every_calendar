@@ -2,7 +2,6 @@ import 'package:every_calendar/constants/all_constants.dart';
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/core/db/abstract_repository.dart';
 import 'package:every_calendar/core/db/pagination.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 

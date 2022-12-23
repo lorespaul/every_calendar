@@ -4,7 +4,6 @@ import 'package:every_calendar/core/google/tenant.dart';
 import 'package:every_calendar/core/google/drive_manager.dart';
 import 'package:every_calendar/core/shared/shared_constants.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:collection/collection.dart';
 
 import 'package:flutter/material.dart';

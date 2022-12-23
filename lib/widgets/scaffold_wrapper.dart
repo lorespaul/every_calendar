@@ -1,5 +1,4 @@
 import 'package:every_calendar/constants/dimensions.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 typedef ScaffoldContentBuilder = Widget Function(BuildContext);

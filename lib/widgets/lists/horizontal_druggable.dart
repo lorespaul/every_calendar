@@ -49,7 +49,7 @@ class _HorizontalDruggableState extends State<HorizontalDruggable>
   Widget build(BuildContext context) {
     if (widget.onDismiss != null && !_animateOutCalled) {
       _animateOutCalled = true;
-      WidgetsBinding.instance!.addPostFrameCallback((_) => _animateOut());
+      WidgetsBinding.instance.addPostFrameCallback((_) => _animateOut());
     } else if (_animateHeightCalled) {
       return SizedBox(height: _height);
     }

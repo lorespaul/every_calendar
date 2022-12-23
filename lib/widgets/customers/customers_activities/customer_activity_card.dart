@@ -3,7 +3,6 @@ import 'package:every_calendar/model/customer.dart';
 import 'package:every_calendar/model/customer_activity.dart';
 import 'package:every_calendar/repositories/activities_repository.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'add_edit_customer_activity.dart';

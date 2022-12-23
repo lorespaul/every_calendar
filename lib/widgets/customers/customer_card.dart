@@ -1,7 +1,6 @@
 import 'package:every_calendar/core/db/abstract_entity.dart';
 import 'package:every_calendar/model/customer.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'add_edit_customer.dart';

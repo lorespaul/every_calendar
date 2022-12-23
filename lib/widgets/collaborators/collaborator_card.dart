@@ -1,6 +1,5 @@
 import 'package:every_calendar/model/collaborator.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'add_edit_collaborator.dart';

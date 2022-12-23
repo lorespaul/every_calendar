@@ -7,7 +7,6 @@ import 'package:every_calendar/model/value_objects/time_range.dart';
 import 'package:every_calendar/repositories/activities_repository.dart';
 import 'package:every_calendar/utils/date_time_ultils.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 

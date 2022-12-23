@@ -4,7 +4,6 @@ import 'package:every_calendar/repositories/activities_repository.dart';
 import 'package:every_calendar/repositories/collaborators_repository.dart';
 import 'package:every_calendar/repositories/customers_repository.dart';
 import 'package:every_calendar/widgets/scaffold_wrapper.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class DevGenerator extends StatelessWidget {

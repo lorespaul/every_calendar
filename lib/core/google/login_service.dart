@@ -83,6 +83,7 @@ class LoginService {
       return await _googleSignIn!.signIn();
     } catch (error) {
       developer.log(error.toString());
+      return Future.error(error);
     }
   }
 

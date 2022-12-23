@@ -8,7 +8,6 @@ import 'package:every_calendar/widgets/customers/add_edit_customer.dart';
 import 'package:every_calendar/widgets/collaborators/collaborators_list.dart';
 import 'package:every_calendar/widgets/customers/customers_list.dart';
 import 'package:every_calendar/widgets/nav_drawer.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MainTabs extends StatefulWidget {

@@ -26,7 +26,7 @@
         {
             "name": "ios simulator",
             "request": "launch",
-            "args": ["-d", "55C4B3B4-C085-4EC2-9D16-0E5FF85DA083"],
+            "args": ["-d", "3A0DADF1-AFFA-4C77-914C-199C9BAE6FA2"],
             "type": "dart"
         },
         {
